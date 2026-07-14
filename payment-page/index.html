@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Your Booking - BeautyBook</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="16" cy="16" r="14" fill="#6C63FF"/>
+                    <path d="M16 8C12 8 10 11 10 14C10 18 14 20 16 22C18 20 22 18 22 14C22 11 20 8 16 8Z" fill="white"/>
+                </svg>
+                <span>BeautyBook</span>
+            </div>
+            <div class="secure-badge">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+                Secure Payment
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="payment-grid">
+                <!-- LEFT SECTION - Booking Summary -->
+                <section class="booking-summary">
+                    <h2 class="section-title">Booking Summary</h2>
+                    
+                    <div class="summary-card">
+                        <div class="salon-info">
+                            <div class="salon-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                                    <polyline points="9 22 9 12 15 12 15 22"/>
+                                </svg>
+                            </div>
+                            <div class="salon-details">
+                                <h3 class="salon-name" id="salonName">Glamour Beauty Studio</h3>
+                                <p class="salon-location">Downtown, City Center</p>
+                            </div>
+                        </div>
+
+                        <div class="service-details">
+                            <div class="detail-row">
+                                <span class="detail-label">Service</span>
+                                <span class="detail-value" id="serviceName">Full Hair Treatment</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Date & Time</span>
+                                <span class="detail-value" id="bookingDateTime">Tomorrow, 2:00 PM</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Duration</span>
+                                <span class="detail-value">90 minutes</span>
+                            </div>
+                        </div>
+
+                        <div class="price-breakdown">
+                            <div class="price-row">
+                                <span class="price-label">Service Price</span>
+                                <span class="price-value" id="servicePrice">50,000 FCFA</span>
+                            </div>
+                            
+                            <div class="booking-fee-box">
+                                <div class="fee-header">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <line x1="12" y1="8" x2="12" y2="12"/>
+                                        <line x1="12" y1="16" x2="12.01" y2="16"/>
+                                    </svg>
+                                    <span class="fee-title">Booking Fee (10%)</span>
+                                </div>
+                                <div class="fee-amount" id="bookingFee">5,000 FCFA</div>
+                                <p class="fee-description">This secures your appointment</p>
+                            </div>
+                        </div>
+
+                        <!-- Important Notice -->
+                        <div class="notice-box">
+                            <div class="notice-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                                    <line x1="12" y1="9" x2="12" y2="13"/>
+                                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                                </svg>
+                            </div>
+                            <div class="notice-content">
+                                <h4 class="notice-title">Important Notice</h4>
+                                <p class="notice-text">
+                                    <strong>You are NOT paying for the service here.</strong><br>
+                                    This payment only confirms your booking.<br>
+                                    The remaining service amount (<span id="remainingAmount">45,000 FCFA</span>) will be paid directly at the salon.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- RIGHT SECTION - Payment -->
+                <section class="payment-section">
+                    <h2 class="section-title">Complete Your Booking</h2>
+                    
+                    <div class="payment-card">
+                        <div class="payment-amount-box">
+                            <span class="amount-label">Amount to Pay</span>
+                            <div class="amount-value" id="amountToPay">5,000 FCFA</div>
+                            <p class="amount-description">Booking fee only</p>
+                        </div>
+
+                        <form id="paymentForm" class="payment-form">
+                            <!-- Payment Method -->
+                            <div class="form-group">
+                                <label class="form-label">Select Payment Method</label>
+                                <div class="payment-methods">
+                                    <label class="payment-method-card">
+                                        <input type="radio" name="paymentMethod" value="mtn" checked>
+                                        <div class="method-content">
+                                            <div class="method-logo mtn-logo">MTN</div>
+                                            <span class="method-name">Mobile Money</span>
+                                        </div>
+                                        <div class="method-check">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                                <polyline points="20 6 9 17 4 12"/>
+                                            </svg>
+                                        </div>
+                                    </label>
+
+                                    <label class="payment-method-card">
+                                        <input type="radio" name="paymentMethod" value="orange">
+                                        <div class="method-content">
+                                            <div class="method-logo orange-logo">Orange</div>
+                                            <span class="method-name">Mobile Money</span>
+                                        </div>
+                                        <div class="method-check">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                                <polyline points="20 6 9 17 4 12"/>
+                                            </svg>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Phone Number -->
+                            <div class="form-group">
+                                <label for="phoneNumber" class="form-label">Mobile Money Number</label>
+                                <input 
+                                    type="tel" 
+                                    id="phoneNumber" 
+                                    class="form-input" 
+                                    placeholder="Enter phone number used for payment"
+                                    pattern="[0-9]{9}"
+                                    required
+                                >
+                                <p class="form-hint">We'll send payment confirmation to this number</p>
+                            </div>
+
+                            <!-- Confirm Button -->
+                            <button type="submit" class="confirm-btn" id="confirmBtn">
+                                <span class="btn-text">Pay Booking Fee</span>
+                                <div class="btn-loader" style="display: none;">
+                                    <div class="spinner"></div>
+                                    <span>Processing...</span>
+                                </div>
+                            </button>
+
+                            <p class="terms-text">
+                                By confirming, you agree to our 
+                                <a href="#">Terms of Service</a> and 
+                                <a href="#">Cancellation Policy</a>
+                            </p>
+                        </form>
+                    </div>
+
+                    <!-- Trust Badges -->
+                    <div class="trust-badges">
+                        <div class="badge-item">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                            <span>Secure Payment</span>
+                        </div>
+                        <div class="badge-item">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                            <span>Instant Confirmation</span>
+                        </div>
+                        <div class="badge-item">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                            </svg>
+                            <span>Protected Booking</span>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="modal-overlay" id="successModal" style="display: none;">
+        <div class="modal-content">
+            <div class="success-animation">
+                <div class="checkmark-circle">
+                    <svg width="80" height="80" viewBox="0 0 80 80">
+                        <circle cx="40" cy="40" r="36" fill="#4CAF50" opacity="0.2"/>
+                        <circle cx="40" cy="40" r="32" fill="none" stroke="#4CAF50" stroke-width="3"/>
+                        <path d="M28 40 L36 48 L52 32" fill="none" stroke="#4CAF50" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+            </div>
+            
+            <h2 class="modal-title">Payment Successful! 🎉</h2>
+            <p class="modal-subtitle">Your appointment has been confirmed</p>
+
+            <div class="booking-reference">
+                <div class="ref-label">Booking Reference</div>
+                <div class="ref-value" id="bookingRef">BB-2024-001234</div>
+            </div>
+
+            <div class="confirmation-details">
+                <div class="confirm-row">
+                    <span class="confirm-label">Salon</span>
+                    <span class="confirm-value" id="confirmSalon">Glamour Beauty Studio</span>
+                </div>
+                <div class="confirm-row">
+                    <span class="confirm-label">Service</span>
+                    <span class="confirm-value" id="confirmService">Full Hair Treatment</span>
+                </div>
+                <div class="confirm-row">
+                    <span class="confirm-label">Date</span>
+                    <span class="confirm-value" id="confirmDate">Tomorrow</span>
+                </div>
+                <div class="confirm-row">
+                    <span class="confirm-label">Time</span>
+                    <span class="confirm-value" id="confirmTime">2:00 PM</span>
+                </div>
+                <div class="confirm-row">
+                    <span class="confirm-label">Amount Paid</span>
+                    <span class="confirm-value highlight" id="confirmAmount">5,000 FCFA</span>
+                </div>
+            </div>
+
+            <div class="reminder-box">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+                <p>Remember to pay <strong id="confirmRemaining">45,000 FCFA</strong> at the salon</p>
+            </div>
+
+            <button class="modal-btn" onclick="closeModal()">Done</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

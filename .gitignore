@@ -1,0 +1,61 @@
+# ── Node ──────────────────────────────────────────────────────────────────
+node_modules
+dist
+dist-ssr
+*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+logs
+*.log
+
+# ── Next.js build output (do not commit) ─────────────────────────────────
+admin-frontend/.next/
+admin-frontend/out/
+admin-frontend/node_modules/
+
+# ── Editor ────────────────────────────────────────────────────────────────
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ── Python / Django ───────────────────────────────────────────────────────
+backend/venv/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/*.pyc
+backend/**/*.pyc
+backend/db.sqlite3
+backend/.env
+backend/staticfiles/
+backend/mediafiles/
+backend/salon_images/*
+backend/salon_covers/*
+backend/avatars/*
+backend/advertisements/videos/*
+backend/advertisements/thumbnails/*
+backend/testimonials/
+!backend/salon_images/.gitkeep
+!backend/salon_covers/.gitkeep
+!backend/avatars/.gitkeep
+!backend/advertisements/videos/.gitkeep
+!backend/advertisements/thumbnails/.gitkeep
+
+# ── Environment files ─────────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+*.env
+
+# ── Misc ──────────────────────────────────────────────────────────────────
+buildlog.txt
+{
+backend/-p/

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>BeautyBook CM – Book Beauty Services Instantly in Cameroon</title>
+    <meta name="description" content="Cameroon's premier beauty booking platform. Discover top-rated salons in Bamenda, Buea, Douala, Yaounde & Bafoussam for hair, nails, makeup, and massage." />
+
+    <!-- ── Favicon ── -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon.svg" />
+
+    <!-- ── PWA Manifest (vite-plugin-pwa injects this automatically at build time) ── -->
+    <!-- The plugin injects <link rel="manifest"> during build; for dev we add it manually -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+
+    <!-- ── Theme color (Android Chrome + Samsung Internet) ── -->
+    <meta name="theme-color" content="#6D28D9" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#4C1D95" media="(prefers-color-scheme: dark)" />
+
+    <!-- ── Apple PWA (iOS Safari) ── -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="BeautyBook" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/icons/apple-touch-icon-152.png" />
+    <link rel="apple-touch-icon" sizes="167x167" href="/icons/apple-touch-icon-167.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
+
+    <!-- iOS splash screens (portrait) -->
+    <link rel="apple-touch-startup-image"
+      media="screen and (device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)"
+      href="/splash/splash-1290x2796.png" />
+    <link rel="apple-touch-startup-image"
+      media="screen and (device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3)"
+      href="/splash/splash-1179x2556.png" />
+    <link rel="apple-touch-startup-image"
+      media="screen and (device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)"
+      href="/splash/splash-1170x2532.png" />
+    <link rel="apple-touch-startup-image"
+      media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)"
+      href="/splash/splash-1125x2436.png" />
+    <link rel="apple-touch-startup-image"
+      media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)"
+      href="/splash/splash-750x1334.png" />
+
+    <!-- ── Microsoft Tiles ── -->
+    <meta name="msapplication-TileColor" content="#6D28D9" />
+    <meta name="msapplication-TileImage" content="/icons/icon-192.png" />
+    <meta name="msapplication-config" content="none" />
+
+    <!-- ── Open Graph ── -->
+    <meta property="og:title" content="BeautyBook CM – Book Beauty Services in Cameroon" />
+    <meta property="og:description" content="Discover top-rated salons in Bamenda, Buea, Douala, Yaounde & Bafoussam." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/og.jpg" />
+    <meta property="og:url" content="https://beautybookcm.com" />
+
+    <!-- ── Twitter Card ── -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="BeautyBook CM" />
+    <meta name="twitter:description" content="Book beauty services instantly across Cameroon." />
+    <meta name="twitter:image" content="/og.jpg" />
+
+    <!-- ── Fonts ── -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  </head>
+
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
