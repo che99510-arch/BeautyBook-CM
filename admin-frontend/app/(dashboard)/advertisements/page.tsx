@@ -43,11 +43,16 @@ interface Advertisement {
 // Remove mockAds - using real API data
 
 const statusConfig = {
-  active: { icon: CheckCircle, color: 'text-green-400', label: 'Active', bg: 'bg-green-900/20' },
-  scheduled: { icon: Clock, color: 'text-blue-400', label: 'Scheduled', bg: 'bg-blue-900/20' },
-  expired: { icon: XCircle, color: 'text-gray-400', label: 'Expired', bg: 'bg-gray-900/20' },
-  pending: { icon: Clock, color: 'text-amber-400', label: 'Pending', bg: 'bg-amber-900/20' },
-};
+  active:    { icon: CheckCircle, color: 'text-green-400',  label: 'Active',    bg: 'bg-green-900/20' },
+  scheduled: { icon: Clock,       color: 'text-blue-400',   label: 'Scheduled', bg: 'bg-blue-900/20' },
+  expired:   { icon: XCircle,     color: 'text-gray-400',   label: 'Expired',   bg: 'bg-gray-900/20' },
+  pending:   { icon: Clock,       color: 'text-amber-400',  label: 'Pending',   bg: 'bg-amber-900/20' },
+  paused:    { icon: AlertCircle, color: 'text-orange-400', label: 'Paused',    bg: 'bg-orange-900/20' },
+} as const;
+
+const getStatusConfig = (status: string) =>
+  statusConfig[status as keyof typeof statusConfig] ??
+  { icon: Clock, color: 'text-gray-400', label: status, bg: 'bg-gray-900/20' };
 
 const MAX_ACTIVE_ADS = 3;
 
@@ -467,7 +472,7 @@ export default function AdvertisementsPage() {
                 </tr>
               ) : (
                 filteredAds.map((ad) => {
-                  const config = statusConfig[ad.status];
+                  const config = getStatusConfig(ad.status);
                   const StatusIcon = config.icon;
 
                   return (
