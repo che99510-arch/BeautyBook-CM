@@ -73,6 +73,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -154,6 +155,9 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+# WhiteNoise — serve static files efficiently in production
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 # Media files (uploads, advertisements, etc.)
 # https://docs.djangoproject.com/en/6.0/topics/files/
 MEDIA_URL = '/media/'
@@ -186,6 +190,7 @@ CORS_ALLOWED_ORIGINS = [
     'http://127.0.0.1:8080',
     'http://localhost',
     'http://127.0.0.1',
+    'https://beauty-book-cm.vercel.app'
     # Local network access (mobile/other devices on same WiFi)
     'http://192.168.1.49:5173',
     'http://192.168.1.49:3000',
