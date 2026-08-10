@@ -1,0 +1,33 @@
+app:
+  name: beautybook-cm-api
+
+services:
+  - name: web
+    type: web
+    instance_type: free
+    regions:
+      - was  # Washington DC - closest to Africa
+    git:
+      repository: github.com/che99510-arch/BeautyBook-CM
+      branch: main
+      buildpack:
+        build_command: "pip install -r backend/requirements.txt"
+        run_command: "cd backend && python manage.py migrate --noinput && python manage.py collectstatic --noinput && gunicorn beautybook_backend.wsgi:application --bind 0.0.0.0:$PORT --workers 1 --timeout 120"
+        workdir: "backend"
+    ports:
+      - port: 8000
+        protocol: http
+    env:
+      - key: PORT
+        value: "8000"
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: DJANGO_SETTINGS_MODULE
+        value: beautybook_backend.settings
+    health_checks:
+      - path: /api/
+        port: 8000
+        interval: 30
+        timeout: 10
+        unhealthy_threshold: 3
+        healthy_threshold: 1
