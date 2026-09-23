@@ -7,18 +7,26 @@ export function middleware(request: NextRequest) {
   // Allow login page without token
   if (pathname === '/login' || pathname.startsWith('/login/')) {
     if (token) {
-      // Redirect to dashboard if already logged in
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
     return NextResponse.next();
   }
 
-  // Protect dashboard routes
-  if (pathname.startsWith('/dashboard') || pathname.startsWith('/salons') || 
-      pathname.startsWith('/customers') || pathname.startsWith('/bookings') ||
-      pathname.startsWith('/payments') || pathname.startsWith('/disputes') ||
-      pathname.startsWith('/advertisements') || pathname.startsWith('/reports') ||
-      pathname.startsWith('/settings')) {
+  // Root → always redirect to login (page.tsx handles the rest client-side)
+  if (pathname === '/') {
+    if (token) {
+      return NextResponse.redirect(new URL('/dashboard', request.url));
+    }
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
+
+  // Protect all dashboard routes
+  const protectedPaths = [
+    '/dashboard', '/salons', '/customers', '/bookings', '/payments',
+    '/disputes', '/advertisements', '/reports', '/settings',
+    '/testimonials', '/notifications',
+  ];
+  if (protectedPaths.some(p => pathname.startsWith(p))) {
     if (!token) {
       return NextResponse.redirect(new URL('/login', request.url));
     }
@@ -29,7 +37,6 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Match all routes except static files and api routes
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|icons|splash).*)',
   ],
 };

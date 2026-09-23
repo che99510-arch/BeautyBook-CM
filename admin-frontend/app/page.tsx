@@ -1,15 +1,15 @@
-import { redirect } from 'next/navigation';
-import { cookies } from 'next/headers';
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function HomePage() {
-  const cookieStore = cookies();
-  const token = cookieStore.get('admin_token');
+  const router = useRouter();
 
-  // If user is authenticated, redirect to dashboard
-  if (token) {
-    redirect('/dashboard');
-  }
+  useEffect(() => {
+    // Redirect handled by middleware — this is just a fallback
+    router.replace('/login');
+  }, [router]);
 
-  // Otherwise, redirect to login
-  redirect('/login');
+  return null;
 }
