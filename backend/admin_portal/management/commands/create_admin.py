@@ -19,10 +19,10 @@ class Command(BaseCommand):
         password = os.environ.get('ADMIN_PASSWORD', '').strip()
 
         if not email or not password:
-            # Fall back to interactive prompt
-            self.stdout.write(self.style.SUCCESS('\n=== Create Admin User ===\n'))
-            email    = input('Admin email: ').strip()
-            password = input('Admin password: ').strip()
+            self.stderr.write(self.style.ERROR(
+                'Skipping admin creation: ADMIN_EMAIL and ADMIN_PASSWORD env vars not set.'
+            ))
+            return
 
         if not email or not password:
             self.stderr.write(self.style.ERROR('ADMIN_EMAIL and ADMIN_PASSWORD are required.'))
