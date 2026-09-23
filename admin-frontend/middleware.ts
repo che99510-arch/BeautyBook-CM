@@ -1,42 +1,47 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 export function middleware(request: NextRequest) {
-  const token = request.cookies.get('admin_token')?.value;
   const { pathname } = request.nextUrl;
+  const token = request.cookies.get('admin_token')?.value;
 
-  // Allow login page without token
-  if (pathname === '/login' || pathname.startsWith('/login/')) {
+  // Root → redirect based on auth state
+  if (pathname === '/') {
+    const dest = token ? '/dashboard' : '/login';
+    return NextResponse.redirect(new URL(dest, request.url));
+  }
+
+  // Login page — redirect away if already logged in
+  if (pathname === '/login') {
     if (token) {
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
     return NextResponse.next();
   }
 
-  // Root → always redirect to login (page.tsx handles the rest client-side)
-  if (pathname === '/') {
-    if (token) {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
-    }
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
-
-  // Protect all dashboard routes
-  const protectedPaths = [
-    '/dashboard', '/salons', '/customers', '/bookings', '/payments',
-    '/disputes', '/advertisements', '/reports', '/settings',
-    '/testimonials', '/notifications',
-  ];
-  if (protectedPaths.some(p => pathname.startsWith(p))) {
-    if (!token) {
-      return NextResponse.redirect(new URL('/login', request.url));
-    }
+  // Protected routes — require token
+  if (!token) {
+    const loginUrl = new URL('/login', request.url);
+    loginUrl.searchParams.set('from', pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
   return NextResponse.next();
 }
 
+// Only run on actual page routes, not on assets or API
 export const config = {
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico|icons|splash).*)',
+    '/',
+    '/login',
+    '/dashboard/:path*',
+    '/salons/:path*',
+    '/customers/:path*',
+    '/bookings/:path*',
+    '/payments/:path*',
+    '/disputes/:path*',
+    '/advertisements/:path*',
+    '/reports/:path*',
+    '/settings/:path*',
+    '/testimonials/:path*',
   ],
 };
