@@ -175,3 +175,8 @@ for _origin in [o.strip() for o in _extra_cors.split(',') if o.strip()]:
         CORS_ALLOWED_ORIGINS.append(_origin)
 
 CORS_ALLOW_CREDENTIALS = True
+
+# Allow all vercel.app preview deployments automatically
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r'^https://.*\.vercel\.app$',
+]
