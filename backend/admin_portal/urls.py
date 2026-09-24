@@ -7,21 +7,30 @@ from admin_portal.views import (
     AdminAnalyticsViewSet,
     AdminAdvertisementViewSet,
     ReportsViewSet,
-    PlatformSettingsView,
     SiteTestimonialViewSet,
     AdminNotificationsView,
 )
+from admin_portal.admin_account_views import (
+    AdminSetupView,
+    AdminSignupView,
+    ProtectedPlatformSettingsView,
+)
 
 router = DefaultRouter()
-router.register(r'bookings', AdminBookingViewSet, basename='admin-booking')
-router.register(r'salons', AdminSalonViewSet, basename='admin-salon')
-router.register(r'users', AdminUserViewSet, basename='admin-user')
-router.register(r'analytics', AdminAnalyticsViewSet, basename='admin-analytics')
-router.register(r'advertisements', AdminAdvertisementViewSet, basename='admin-advertisement')
-router.register(r'reports', ReportsViewSet, basename='admin-reports')
-router.register(r'settings', PlatformSettingsView, basename='admin-settings')
-router.register(r'testimonials', SiteTestimonialViewSet, basename='admin-testimonials')
-router.register(r'notifications', AdminNotificationsView, basename='admin-notifications')
+router.register(r'bookings',       AdminBookingViewSet,           basename='admin-booking')
+router.register(r'salons',         AdminSalonViewSet,             basename='admin-salon')
+router.register(r'users',          AdminUserViewSet,              basename='admin-user')
+router.register(r'analytics',      AdminAnalyticsViewSet,         basename='admin-analytics')
+router.register(r'advertisements', AdminAdvertisementViewSet,     basename='admin-advertisement')
+router.register(r'reports',        ReportsViewSet,                basename='admin-reports')
+router.register(r'testimonials',   SiteTestimonialViewSet,        basename='admin-testimonials')
+router.register(r'notifications',  AdminNotificationsView,        basename='admin-notifications')
+
+# New admin account management endpoints
+router.register(r'setup',          AdminSetupView,                basename='admin-setup')
+router.register(r'admin_signup',   AdminSignupView,               basename='admin-signup')
+# Protected settings — replaces original PlatformSettingsView
+router.register(r'settings',       ProtectedPlatformSettingsView, basename='admin-settings')
 
 from payments.urls import admin_urlpatterns as payment_admin_urls
 

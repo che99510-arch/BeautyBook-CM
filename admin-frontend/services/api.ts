@@ -257,9 +257,47 @@ class ApiService {
     return { success: true };
   }
 
+  // ── Admin Account Management ─────────────────────────────────────────────
+
+  /** Check whether first-run setup is still available (no admin exists yet) */
+  async checkSetupAvailable(): Promise<{ available: boolean; message: string }> {
+    const res = await fetch(`${API_URL}/setup/`, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+    return res.json();
+  }
+
+  /** Create the very first administrator account (no auth required) */
+  async setupFirstAdmin(data: {
+    name: string; email: string; password: string; confirm_password: string;
+  }) {
+    const res = await fetch(`${API_URL}/setup/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error || JSON.stringify(json));
+    return json;
+  }
+
+  /** Register a new administrator (respects allow_admin_signup setting) */
+  async adminSignup(data: {
+    name: string; email: string; password: string;
+    confirm_password: string; invitation_code?: string;
+  }) {
+    const res = await fetch(`${API_URL}/admin_signup/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error || JSON.stringify(json));
+    return json;
+  }
+
   // Notifications
-  async getNotifications(enabledPrefs?: string[]) {
-    let url = '/notifications/';
+  async getNotifications(enabledPrefs?: string[]) {    let url = '/notifications/';
     if (enabledPrefs && enabledPrefs.length > 0) {
       url += `?prefs=${enabledPrefs.join(',')}`;
     }

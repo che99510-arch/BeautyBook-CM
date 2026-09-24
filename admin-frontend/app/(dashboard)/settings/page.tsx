@@ -19,6 +19,10 @@ interface PlatformSettings {
   default_ad_duration_days: number;
   maintenance_mode: boolean;
   allow_new_registrations: boolean;
+  // Admin signup control (superuser-only write)
+  allow_admin_signup: boolean;
+  admin_invitation_code: string;
+  _is_superuser?: boolean;
 }
 
 const NOTIF_KEY = 'admin_notification_prefs';
@@ -135,6 +139,8 @@ export default function SettingsPage() {
     default_ad_duration_days: 30,
     maintenance_mode: false,
     allow_new_registrations: true,
+    allow_admin_signup: false,
+    admin_invitation_code: '',
   });
 
   useEffect(() => {
@@ -438,9 +444,64 @@ export default function SettingsPage() {
                 </div>
               </div>
 
+              {/* ── Administrator Registration (superuser only) ── */}
+              <div className="bg-gray-800 rounded-lg border border-gray-700 p-6">
+                <h3 className="text-lg font-semibold text-white mb-1 flex items-center gap-2">
+                  👤 Administrator Registration
+                </h3>
+                <p className="text-xs text-gray-400 mb-4">
+                  {settings._is_superuser
+                    ? 'Control whether new administrator accounts can be created.'
+                    : 'Only the super administrator can change these settings.'}
+                </p>
+
+                {/* ON/OFF toggle */}
+                <div className="flex items-center justify-between p-4 bg-gray-700/50 rounded-lg mb-3">
+                  <div>
+                    <p className="text-white font-medium text-sm">Allow new administrators to sign up</p>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      {settings.allow_admin_signup
+                        ? '✅ Administrator registration is currently enabled.'
+                        : '🔒 Administrator registration is currently disabled.'}
+                    </p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={settings.allow_admin_signup}
+                    disabled={!settings._is_superuser}
+                    onChange={e => updateSetting('allow_admin_signup', e.target.checked)}
+                    className="w-5 h-5 rounded border-gray-600 text-purple-600 focus:ring-purple-500 disabled:opacity-40 disabled:cursor-not-allowed"
+                  />
+                </div>
+
+                {/* Invitation code */}
+                {settings._is_superuser && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1.5">
+                      Invitation Code <span className="text-gray-500 font-normal">(optional)</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={settings.admin_invitation_code}
+                      onChange={e => updateSetting('admin_invitation_code', e.target.value)}
+                      placeholder="Leave blank to allow signup without a code"
+                      className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      If set, new admins must enter this code during signup.
+                    </p>
+                  </div>
+                )}
+
+                {!settings._is_superuser && (
+                  <p className="text-xs text-amber-400 mt-2">
+                    🔐 You need super administrator privileges to change these settings.
+                  </p>
+                )}
+              </div>
+
               <div className="flex items-center gap-4">
-                <button onClick={handlePlatformSave} disabled={platformSaving}
-                  className="flex items-center gap-2 px-6 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition font-medium disabled:opacity-50">
+                <button onClick={handlePlatformSave} disabled={platformSaving}                  className="flex items-center gap-2 px-6 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition font-medium disabled:opacity-50">
                   {platformSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                   {platformSaving ? 'Saving…' : 'Save Settings'}
                 </button>

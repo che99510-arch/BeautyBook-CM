@@ -146,6 +146,8 @@ class PlatformSettingsSerializer(serializers.ModelSerializer):
             'payment_enabled',
             'max_active_ads', 'default_ad_duration_days',
             'maintenance_mode', 'allow_new_registrations',
+            # Admin signup control — readable by all admins, writable only by superusers
+            'allow_admin_signup', 'admin_invitation_code',
             'updated_at',
         ]
         read_only_fields = ['updated_at']

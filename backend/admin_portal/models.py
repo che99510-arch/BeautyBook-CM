@@ -40,6 +40,18 @@ class PlatformSettings(models.Model):
         help_text='Enable payment collection. False = free booking mode for all users.'
     )
 
+    # ── Admin account control ─────────────────────────────────────────────
+    allow_admin_signup = models.BooleanField(
+        default=False,
+        help_text='Allow new administrators to register. Only superusers can change this.'
+    )
+    admin_invitation_code = models.CharField(
+        max_length=64,
+        blank=True,
+        default='',
+        help_text='Optional invitation code required for admin signup. Leave blank to disable.'
+    )
+
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
