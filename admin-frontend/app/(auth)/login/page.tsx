@@ -21,9 +21,9 @@ export default function LoginPage() {
       .then(r => setSetupAvailable(r.available))
       .catch(() => {});
 
-    // Check if admin signup is open (public endpoint)
+    // Check if admin signup is open (public endpoint — no auth needed)
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/admin';
-    fetch(`${apiUrl}/settings/`)
+    fetch(`${apiUrl}/public_settings/`)
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (d) setSignupOpen(!!d.allow_admin_signup); })
       .catch(() => {});

@@ -14,6 +14,7 @@ from admin_portal.admin_account_views import (
     AdminSetupView,
     AdminSignupView,
     ProtectedPlatformSettingsView,
+    PublicAdminSettingsView,
 )
 
 router = DefaultRouter()
@@ -27,10 +28,10 @@ router.register(r'testimonials',   SiteTestimonialViewSet,        basename='admi
 router.register(r'notifications',  AdminNotificationsView,        basename='admin-notifications')
 
 # New admin account management endpoints
-router.register(r'setup',          AdminSetupView,                basename='admin-setup')
-router.register(r'admin_signup',   AdminSignupView,               basename='admin-signup')
-# Protected settings — replaces original PlatformSettingsView
-router.register(r'settings',       ProtectedPlatformSettingsView, basename='admin-settings')
+router.register(r'setup',           AdminSetupView,                basename='admin-setup')
+router.register(r'admin_signup',    AdminSignupView,               basename='admin-signup')
+router.register(r'settings',        ProtectedPlatformSettingsView, basename='admin-settings')
+router.register(r'public_settings', PublicAdminSettingsView,       basename='admin-public-settings')
 
 from payments.urls import admin_urlpatterns as payment_admin_urls
 

@@ -19,12 +19,12 @@ export default function AdminSignupPage() {
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
-    // Check settings — do not require auth, just read allow_admin_signup
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/admin'}/settings/`)
+    // Check settings — use public endpoint (no auth required)
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/admin'}/public_settings/`)
       .then(r => r.json())
       .then(data => {
         setSignupOpen(!!data.allow_admin_signup);
-        setNeedsCode(!!data.admin_invitation_code);
+        setNeedsCode(!!data.requires_invitation_code);
       })
       .catch(() => setSignupOpen(false))
       .finally(() => setChecking(false));

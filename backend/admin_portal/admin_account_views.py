@@ -188,6 +188,24 @@ class AdminSignupView(viewsets.ViewSet):
 SUPERUSER_ONLY_FIELDS = {'allow_admin_signup', 'admin_invitation_code'}
 
 
+class PublicAdminSettingsView(viewsets.ViewSet):
+    """
+    GET /api/admin/public_settings/
+
+    Returns only the fields the login/signup pages need — no auth required.
+    This prevents 401 errors on the login page.
+    """
+    permission_classes = []
+
+    def list(self, request):
+        s = PlatformSettings.get()
+        return Response({
+            'allow_admin_signup': s.allow_admin_signup,
+            # Tell frontend whether an invite code is required (not the code itself)
+            'requires_invitation_code': bool(s.admin_invitation_code),
+        })
+
+
 class ProtectedPlatformSettingsView(viewsets.ViewSet):
     """
     Replaces the original PlatformSettingsView.
