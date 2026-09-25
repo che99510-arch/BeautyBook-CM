@@ -166,8 +166,10 @@ class AdminSignupView(viewsets.ViewSet):
         if password != confirm:
             return Response({'confirm_password': 'Passwords do not match.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # New admins are staff but NOT superuser
-        user, errors = _create_admin_user(name, email, password, is_superuser=False)
+        # If no superuser exists yet, the first signup becomes superadmin
+        from django.contrib.auth.models import User as _User
+        no_superadmin_yet = not _User.objects.filter(is_superuser=True).exists()
+        user, errors = _create_admin_user(name, email, password, is_superuser=no_superadmin_yet)
         if errors:
             return Response(errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -179,6 +181,7 @@ class AdminSignupView(viewsets.ViewSet):
                 'id': user.id,
                 'name': user.get_full_name() or user.username,
                 'email': user.email,
+                'is_superuser': user.is_superuser,
             },
         }, status=status.HTTP_201_CREATED)
 
