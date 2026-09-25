@@ -1,20 +1,22 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { salons as fallbackSalons, testimonials as fallbackTestimonials, dashboardBookings as fallbackBookings } from '@/data/salonData';
 import type { Salon, Service, Review, Booking } from '@/data/salonData';
+import { API_BASE, buildMediaUrl } from '@/lib/api';
 
 // API Configuration
-const API_URL = 'http://localhost:8000/api';
+const API_URL = API_BASE;
 
 // ── Convert DB rows to app Salon format ──
 function toAppSalon(s: any, services: any[], reviews: any[]): Salon {
+  const fallbackImg = 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=600&h=400&fit=crop';
   return {
     id: s.id.toString(),
     name: s.name,
     location: s.location,
     city: s.city as 'Bamenda' | 'Buea' | 'Douala' | 'Yaounde' | 'Bafoussam',
     description: s.description || '',
-    image: s.image || '',
-    coverImage: s.cover_image || '',
+    image: buildMediaUrl(s.image, fallbackImg),
+    coverImage: buildMediaUrl(s.cover_image, fallbackImg),
     rating: Number(s.rating) || 0,
     reviewCount: s.review_count || 0,
     startingPrice: Number(s.starting_price) || 0,
