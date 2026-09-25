@@ -17,7 +17,7 @@ class Salon(models.Model):
         'auth.User', null=True, blank=True,
         on_delete=models.SET_NULL, related_name='salons'
     )
-    name = models.CharField(max_length=255, unique=True)
+    name = models.CharField(max_length=255)
     location = models.CharField(max_length=255)
     # blank=True + no validator so existing rows with old city values (e.g. Yaoundé)
     # still pass PATCH without a 400. The choices list is for display/forms only.
