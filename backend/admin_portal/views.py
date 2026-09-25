@@ -863,46 +863,32 @@ class AdminAdvertisementViewSet(viewsets.ModelViewSet):
     def upload(self, request):
         """Upload a new advertisement with video and optional thumbnail."""
         try:
-            # Get form data - handle both JSON and form data
-            if request.content_type.startswith('multipart/form-data'):
-                salon_id = request.data.get('salonId')
-                tagline = request.data.get('tagline')
-                description = request.data.get('description', '')
-                start_date = request.data.get('startDate')
-                end_date = request.data.get('endDate')
-                is_featured = request.data.get('isFeatured', 'false').lower() == 'true'
-            else:
-                # JSON data
-                data = request.data
-                salon_id = data.get('salonId')
-                tagline = data.get('tagline')
-                description = data.get('description', '')
-                start_date = data.get('startDate')
-                end_date = data.get('endDate')
-                is_featured = data.get('isFeatured', False)
-            
-            # Handle empty dates
-            if start_date == '':
-                start_date = None
-            if end_date == '':
-                end_date = None
-            
-            # Debug logging
-            print(f"Upload request data: salon_id={salon_id}, tagline={tagline}, start_date={start_date}, end_date={end_date}")
-            print(f"Start date type: {type(start_date)}, End date type: {type(end_date)}")
-            print(f"Files in request: {list(request.FILES.keys())}")
-            
-            # Validate required fields
-            if not salon_id or not tagline:
-                return Response({'error': 'Salon ID and tagline are required'}, status=400)
-            
-            # Get salon
+            data = request.data
+            salon_id  = data.get('salonId') or data.get('salon_id')
+            tagline   = data.get('tagline', '').strip()
+            description = data.get('description', '').strip()
+            start_date  = data.get('startDate') or data.get('start_date') or None
+            end_date    = data.get('endDate')   or data.get('end_date')   or None
+            is_featured = str(data.get('isFeatured', data.get('is_featured', 'false'))).lower() in ('true', '1', 'yes')
+
+            # Normalize empty strings to None
+            if not start_date: start_date = None
+            if not end_date:   end_date   = None
+
+            print(f"Upload: salon_id={salon_id}, tagline={tagline}, start={start_date}, end={end_date}, files={list(request.FILES.keys())}")
+
+            if not salon_id:
+                return Response({'error': 'Salon ID is required (salonId field)'}, status=400)
+            if not tagline:
+                return Response({'error': 'Tagline is required'}, status=400)
+
             try:
                 salon = Salon.objects.get(id=salon_id)
             except Salon.DoesNotExist:
                 return Response({'error': f'Salon with ID {salon_id} not found'}, status=400)
-            
-            # Create advertisement
+            except ValueError:
+                return Response({'error': f'Invalid salon ID: {salon_id}'}, status=400)
+
             advertisement = Advertisement.objects.create(
                 salon=salon,
                 tagline=tagline,
@@ -910,26 +896,21 @@ class AdminAdvertisementViewSet(viewsets.ModelViewSet):
                 start_date=start_date,
                 end_date=end_date,
                 is_featured=is_featured,
-                status='pending'
+                status='pending',
             )
-            
-            # Handle file uploads
+
             if 'video' in request.FILES:
                 advertisement.video = request.FILES['video']
-                print(f"Video file saved: {advertisement.video.name}")
-            
             if 'thumbnail' in request.FILES:
                 advertisement.video_thumbnail = request.FILES['thumbnail']
-                print(f"Thumbnail file saved: {advertisement.video_thumbnail.name}")
-            
+
             advertisement.save()
-            
-            # Return serialized data
             serializer = self.get_serializer(advertisement)
             return Response(serializer.data, status=201)
-            
+
         except Exception as e:
-            print(f"Upload error: {str(e)}")
+            import traceback
+            print(f"Upload error: {traceback.format_exc()}")
             return Response({'error': str(e)}, status=400)
 
     @action(detail=False, methods=['post'])

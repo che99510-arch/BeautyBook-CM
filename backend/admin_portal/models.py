@@ -174,9 +174,11 @@ class Advertisement(models.Model):
         help_text='Current status of the advertisement'
     )
     start_date = models.DateField(
+        null=True, blank=True,
         help_text='Advertisement start date'
     )
     end_date = models.DateField(
+        null=True, blank=True,
         help_text='Advertisement end date'
     )
     views = models.PositiveIntegerField(
