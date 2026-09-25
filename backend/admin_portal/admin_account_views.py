@@ -242,3 +242,112 @@ class ProtectedPlatformSettingsView(viewsets.ViewSet):
         result = serializer.data
         result['_is_superuser'] = request.user.is_superuser
         return Response(result)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 4. Admin Users Management — superuser can list, promote, demote, delete admins
+# ─────────────────────────────────────────────────────────────────────────────
+
+class AdminUsersManagementView(viewsets.ViewSet):
+    """
+    GET    /api/admin/admin_users/          — list all admin accounts (superuser only)
+    POST   /api/admin/admin_users/promote/  — grant admin to any user by email
+    DELETE /api/admin/admin_users/{id}/     — revoke admin / delete account
+    """
+    permission_classes = [IsAuthenticated, IsAdmin]
+
+    def list(self, request):
+        """Return all users with admin/staff privileges."""
+        if not request.user.is_superuser:
+            return Response({'error': 'Superuser access required.'}, status=status.HTTP_403_FORBIDDEN)
+
+        from django.contrib.auth.models import User
+        admins = User.objects.filter(
+            models.Q(is_superuser=True) | models.Q(is_staff=True) | models.Q(profile__is_admin=True)
+        ).distinct().select_related('profile')
+
+        data = []
+        for u in admins:
+            data.append({
+                'id': u.id,
+                'name': u.get_full_name() or u.username,
+                'email': u.email,
+                'username': u.username,
+                'is_superuser': u.is_superuser,
+                'is_active': u.is_active,
+                'date_joined': u.date_joined.isoformat(),
+                'role': 'superadmin' if u.is_superuser else 'admin',
+            })
+        return Response(data)
+
+    @action(detail=False, methods=['post'])
+    def promote(self, request):
+        """Grant admin privileges to a user by email (superuser only)."""
+        if not request.user.is_superuser:
+            return Response({'error': 'Superuser access required.'}, status=status.HTTP_403_FORBIDDEN)
+
+        from django.contrib.auth.models import User
+        email = request.data.get('email', '').strip()
+        if not email:
+            return Response({'error': 'Email is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({'error': f'No user found with email {email}.'}, status=status.HTTP_404_NOT_FOUND)
+
+        user.is_staff = True
+        user.save()
+        user.profile.is_admin = True
+        user.profile.save()
+
+        return Response({
+            'message': f'{email} has been granted admin access.',
+            'user': {'id': user.id, 'email': user.email, 'name': user.get_full_name() or user.username},
+        })
+
+    @action(detail=True, methods=['patch'])
+    def revoke(self, request, pk=None):
+        """Revoke admin privileges from an admin (superuser only). Cannot revoke yourself."""
+        if not request.user.is_superuser:
+            return Response({'error': 'Superuser access required.'}, status=status.HTTP_403_FORBIDDEN)
+
+        from django.contrib.auth.models import User
+        try:
+            user = User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        if user.pk == request.user.pk:
+            return Response({'error': 'You cannot revoke your own admin privileges.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if user.is_superuser:
+            return Response({'error': 'Cannot revoke a superuser. Demote them first via Django admin.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.is_staff = False
+        user.save()
+        user.profile.is_admin = False
+        user.profile.save()
+
+        return Response({'message': f'Admin access revoked for {user.email}.'})
+
+    def destroy(self, request, pk=None):
+        """Delete an admin account entirely (superuser only)."""
+        if not request.user.is_superuser:
+            return Response({'error': 'Superuser access required.'}, status=status.HTTP_403_FORBIDDEN)
+
+        from django.contrib.auth.models import User
+        try:
+            user = User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        if user.pk == request.user.pk:
+            return Response({'error': 'You cannot delete your own account.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.delete()
+        return Response({'message': 'Admin account deleted.'}, status=status.HTTP_204_NO_CONTENT)
+
+
+# Need to import models for the Q filter above
+from django.db import models  # noqa — placed here to avoid circular at top

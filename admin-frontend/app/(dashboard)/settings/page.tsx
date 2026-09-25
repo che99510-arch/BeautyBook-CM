@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Save, AlertCircle, CheckCircle, Lock, Bell, Shield, Loader2, X } from 'lucide-react';
+import { Save, AlertCircle, CheckCircle, Lock, Bell, Shield, Loader2, X, UserPlus, Trash2, ShieldOff } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import apiService from '@/services/api';
 import Cookies from 'js-cookie';
@@ -48,7 +48,7 @@ function Toast({ msg, type, onDismiss }: { msg: string; type: 'success' | 'error
 
 export default function SettingsPage() {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'notifications' | 'platform'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'notifications' | 'platform' | 'admins'>('profile');
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
 
   const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
@@ -123,6 +123,60 @@ export default function SettingsPage() {
     }
   };
 
+  // ── Admins tab state (superuser only) ──
+  const [adminUsers, setAdminUsers] = useState<any[]>([]);
+  const [adminsLoading, setAdminsLoading] = useState(false);
+  const [promoteEmail, setPromoteEmail] = useState('');
+  const [promoting, setPromoting] = useState(false);
+
+  useEffect(() => {
+    if (activeTab === 'admins') fetchAdminUsers();
+  }, [activeTab]);
+
+  const fetchAdminUsers = async () => {
+    setAdminsLoading(true);
+    try {
+      const data = await apiService.getAdminUsers();
+      setAdminUsers(Array.isArray(data) ? data : []);
+    } catch { /* not superuser — silently ignore */ }
+    finally { setAdminsLoading(false); }
+  };
+
+  const handlePromote = async () => {
+    if (!promoteEmail.trim()) return;
+    setPromoting(true);
+    try {
+      await apiService.promoteToAdmin(promoteEmail.trim());
+      setPromoteEmail('');
+      showToast(`${promoteEmail} granted admin access`);
+      fetchAdminUsers();
+    } catch (e: any) {
+      showToast(e.message || 'Failed to promote user', 'error');
+    } finally { setPromoting(false); }
+  };
+
+  const handleRevoke = async (id: string, email: string) => {
+    if (!confirm(`Revoke admin access for ${email}?`)) return;
+    try {
+      await apiService.revokeAdmin(id);
+      showToast(`Admin access revoked for ${email}`);
+      fetchAdminUsers();
+    } catch (e: any) {
+      showToast(e.message || 'Failed to revoke access', 'error');
+    }
+  };
+
+  const handleDeleteAdmin = async (id: string, email: string) => {
+    if (!confirm(`Permanently delete admin account for ${email}? This cannot be undone.`)) return;
+    try {
+      await apiService.deleteAdminUser(id);
+      showToast(`Admin account deleted`);
+      fetchAdminUsers();
+    } catch (e: any) {
+      showToast(e.message || 'Failed to delete account', 'error');
+    }
+  };
+
   // ── Platform tab state ──
   const [platformLoading, setPlatformLoading] = useState(false);
   const [platformSaving, setPlatformSaving] = useState(false);
@@ -189,6 +243,7 @@ export default function SettingsPage() {
             { id: 'security',      label: 'Security',      icon: '🔒' },
             { id: 'notifications', label: 'Notifications', icon: '🔔' },
             { id: 'platform',      label: 'Platform',      icon: '⚙️' },
+            { id: 'admins',        label: 'Manage Admins', icon: '🛡️' },
           ].map(tab => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id as any)}
               className={`flex-1 px-4 py-3 text-sm font-medium border-b-2 transition
@@ -517,6 +572,90 @@ export default function SettingsPage() {
               </div>
             </>
           )}
+        </div>
+      )}
+
+      {/* ── Manage Admins (superuser only) ── */}
+      {activeTab === 'admins' && (
+        <div className="space-y-6">
+          {/* Promote new admin */}
+          <div className="bg-gray-800 rounded-lg border border-gray-700 p-6">
+            <h3 className="text-lg font-semibold text-white mb-1 flex items-center gap-2">
+              <UserPlus className="w-5 h-5" /> Grant Admin Access
+            </h3>
+            <p className="text-xs text-gray-400 mb-4">
+              The user must already have a customer or salon owner account on the platform.
+            </p>
+            <div className="flex gap-3">
+              <input
+                type="email"
+                placeholder="user@email.com"
+                value={promoteEmail}
+                onChange={e => setPromoteEmail(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handlePromote()}
+                className="flex-1 px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+              />
+              <button
+                onClick={handlePromote}
+                disabled={promoting || !promoteEmail.trim()}
+                className="flex items-center gap-2 px-5 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition font-medium disabled:opacity-50 text-sm"
+              >
+                {promoting ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
+                {promoting ? 'Granting…' : 'Grant Access'}
+              </button>
+            </div>
+          </div>
+
+          {/* Admin list */}
+          <div className="bg-gray-800 rounded-lg border border-gray-700 p-6">
+            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+              <Shield className="w-5 h-5" /> Administrator Accounts
+            </h3>
+            {adminsLoading ? (
+              <div className="flex justify-center py-10">
+                <Loader2 className="w-8 h-8 animate-spin text-purple-400" />
+              </div>
+            ) : adminUsers.length === 0 ? (
+              <p className="text-gray-400 text-sm text-center py-8">
+                No admin accounts found, or you don't have superuser privileges to view this.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {adminUsers.map((admin) => (
+                  <div key={admin.id} className="flex items-center justify-between p-4 bg-gray-700/50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold
+                        ${admin.role === 'superadmin' ? 'bg-amber-500/20 text-amber-400' : 'bg-purple-500/20 text-purple-400'}`}>
+                        {(admin.name || admin.email)[0].toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="text-white text-sm font-medium">{admin.name || admin.email}</p>
+                        <p className="text-gray-400 text-xs">{admin.email}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold
+                        ${admin.role === 'superadmin' ? 'bg-amber-500/20 text-amber-400' : 'bg-purple-500/20 text-purple-400'}`}>
+                        {admin.role === 'superadmin' ? '⭐ Superadmin' : '🛡️ Admin'}
+                      </span>
+                      {admin.role !== 'superadmin' && (
+                        <div className="flex gap-2">
+                          <button onClick={() => handleRevoke(admin.id, admin.email)} title="Revoke admin access"
+                            className="p-1.5 rounded-lg bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition">
+                            <ShieldOff className="w-4 h-4" />
+                          </button>
+                          <button onClick={() => handleDeleteAdmin(admin.id, admin.email)} title="Delete account"
+                            className="p-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>

@@ -15,6 +15,7 @@ from admin_portal.admin_account_views import (
     AdminSignupView,
     ProtectedPlatformSettingsView,
     PublicAdminSettingsView,
+    AdminUsersManagementView,
 )
 
 router = DefaultRouter()
@@ -32,6 +33,7 @@ router.register(r'setup',           AdminSetupView,                basename='adm
 router.register(r'admin_signup',    AdminSignupView,               basename='admin-signup')
 router.register(r'settings',        ProtectedPlatformSettingsView, basename='admin-settings')
 router.register(r'public_settings', PublicAdminSettingsView,       basename='admin-public-settings')
+router.register(r'admin_users',     AdminUsersManagementView,      basename='admin-users-mgmt')
 
 from payments.urls import admin_urlpatterns as payment_admin_urls
 

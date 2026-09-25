@@ -456,6 +456,26 @@ class ApiService {
     return res.json();
   }
 
+  // Admin Users Management (superuser only)
+  async getAdminUsers() {
+    return this.request<any>('/admin_users/');
+  }
+
+  async promoteToAdmin(email: string) {
+    return this.request<any>('/admin_users/promote/', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  }
+
+  async revokeAdmin(id: string) {
+    return this.request<any>(`/admin_users/${id}/revoke/`, { method: 'PATCH' });
+  }
+
+  async deleteAdminUser(id: string) {
+    return this.request<any>(`/admin_users/${id}/`, { method: 'DELETE' });
+  }
+
   // Platform Settings
   async getPlatformSettings() {    return this.request<any>('/settings/');
   }
