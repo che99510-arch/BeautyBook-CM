@@ -65,61 +65,17 @@ class ApiService {
 
   // Auth
   async login(email: string, password: string) {
-    console.log('Logging in with:', email);
-    
-    // Use customer_login endpoint (admin users are regular users with is_admin flag)
-    const loginResponse = await fetch(`${getBaseUrl()}/users/customer_login/`, {
+    const res = await fetch(`${API_URL}/login/`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        username: email.split('@')[0], // Use email prefix as username
-        password,
-      }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
     });
 
-    if (!loginResponse.ok) {
-      const error = await loginResponse.json();
-      console.error('Login failed:', error);
-      throw new Error(error.error || 'Login failed');
-    }
-
-    const data = await loginResponse.json();
-    console.log('Login successful, token:', data.token.substring(0, 20) + '...');
-    
-    // Check if user is admin by fetching their profile
-    const profileResponse = await fetch(`${getBaseUrl()}/users/current_user/`, {
-      headers: {
-        'Authorization': `Token ${data.token}`,
-      },
-    });
-
-    if (!profileResponse.ok) {
-      throw new Error('Failed to fetch user profile');
-    }
-
-    const userProfile = await profileResponse.json();
-    console.log('User profile:', userProfile);
-    
-    // Check admin privileges (check both is_superuser and profile.is_admin)
-    const isAdmin = userProfile.is_superuser || userProfile.profile?.is_admin;
-    console.log('Is admin?', isAdmin, '(is_superuser:', userProfile.is_superuser, ', profile.is_admin:', userProfile.profile?.is_admin, ')');
-    
-    if (!isAdmin) {
-      throw new Error('User does not have admin privileges');
-    }
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Login failed');
 
     Cookies.set('admin_token', data.token, { expires: 7 });
-    return { 
-      user: {
-        id: userProfile.id.toString(),
-        name: `${userProfile.first_name} ${userProfile.last_name}`.trim() || userProfile.username,
-        email: userProfile.email,
-        role: 'admin' as const,
-      },
-      token: data.token 
-    };
+    return { user: data.user, token: data.token };
   }
 
   async logout() {

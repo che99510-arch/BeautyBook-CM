@@ -349,3 +349,66 @@ class AdminUsersManagementView(viewsets.ViewSet):
 
         user.delete()
         return Response({'message': 'Admin account deleted.'}, status=status.HTTP_204_NO_CONTENT)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 5. Admin Login — dedicated endpoint, works regardless of salon owner status
+# ─────────────────────────────────────────────────────────────────────────────
+
+class AdminLoginView(viewsets.ViewSet):
+    """
+    POST /api/admin/login/
+
+    Authenticates any user and verifies they have admin/superuser privileges.
+    Unlike customer_login, this does NOT block salon owners.
+    """
+    permission_classes = []
+
+    def create(self, request):
+        from django.contrib.auth import authenticate
+        from rest_framework.authtoken.models import Token
+        from django.contrib.auth.models import User
+
+        email    = request.data.get('email', '').strip()
+        password = request.data.get('password', '')
+
+        if not email or not password:
+            return Response({'error': 'Email and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Resolve email → username
+        try:
+            user_obj = User.objects.get(email=email)
+            username = user_obj.username
+        except User.DoesNotExist:
+            return Response({'error': 'No account found with that email address.'}, status=status.HTTP_400_BAD_REQUEST)
+        except User.MultipleObjectsReturned:
+            user_obj = User.objects.filter(email=email).first()
+            username = user_obj.username
+
+        user = authenticate(request, username=username, password=password)
+        if user is None:
+            return Response({'error': 'Incorrect password.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check admin privileges
+        is_admin = (
+            user.is_superuser
+            or user.is_staff
+            or (hasattr(user, 'profile') and user.profile.is_admin)
+        )
+        if not is_admin:
+            return Response(
+                {'error': 'User does not have admin privileges.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        token, _ = Token.objects.get_or_create(user=user)
+        return Response({
+            'token': token.key,
+            'user': {
+                'id': str(user.id),
+                'name': user.get_full_name() or user.username,
+                'email': user.email,
+                'is_superuser': user.is_superuser,
+                'role': 'admin',
+            }
+        })
