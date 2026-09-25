@@ -9,9 +9,11 @@ Endpoints added:
 These are registered in admin_portal/urls.py alongside existing viewsets.
 """
 from rest_framework import viewsets, status
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
+from django.db.models import Q
 
 from admin_portal.models import PlatformSettings
 from admin_portal.permissions import IsAdmin
@@ -263,7 +265,7 @@ class AdminUsersManagementView(viewsets.ViewSet):
 
         from django.contrib.auth.models import User
         admins = User.objects.filter(
-            models.Q(is_superuser=True) | models.Q(is_staff=True) | models.Q(profile__is_admin=True)
+            Q(is_superuser=True) | Q(is_staff=True) | Q(profile__is_admin=True)
         ).distinct().select_related('profile')
 
         data = []
@@ -347,7 +349,3 @@ class AdminUsersManagementView(viewsets.ViewSet):
 
         user.delete()
         return Response({'message': 'Admin account deleted.'}, status=status.HTTP_204_NO_CONTENT)
-
-
-# Need to import models for the Q filter above
-from django.db import models  # noqa — placed here to avoid circular at top
