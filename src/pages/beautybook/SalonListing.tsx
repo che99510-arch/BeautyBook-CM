@@ -62,13 +62,20 @@ const SalonListing: React.FC<SalonListingProps> = ({
       setLoading(true);
       setError(null);
       const params = new URLSearchParams();
+
+      // City filter
       if (selectedCity && selectedCity !== 'All') params.set('city', selectedCity);
-      // search covers salon name, description, location AND service type via tags
-      const combinedSearch = [searchQuery, selectedCategory !== 'All' ? selectedCategory : ''].filter(Boolean).join(' ');
-      if (combinedSearch) params.set('search', combinedSearch);
-      if (sortBy === 'rating') params.set('ordering', '-rating');
-      else if (sortBy === 'reviews') params.set('ordering', '-review_count');
-      else if (sortBy === 'price-low') params.set('ordering', 'starting_price');
+
+      // Build search: combine free text + selected category
+      const parts: string[] = [];
+      if (searchQuery.trim()) parts.push(searchQuery.trim());
+      if (selectedCategory !== 'All') parts.push(selectedCategory);
+      if (parts.length > 0) params.set('search', parts.join(' '));
+
+      // Ordering
+      if (sortBy === 'rating')      params.set('ordering', '-rating');
+      else if (sortBy === 'reviews')    params.set('ordering', '-review_count');
+      else if (sortBy === 'price-low')  params.set('ordering', 'starting_price');
       else if (sortBy === 'price-high') params.set('ordering', '-starting_price');
 
       const res = await fetch(`${API}/salons/?${params.toString()}`);
@@ -87,9 +94,8 @@ const SalonListing: React.FC<SalonListingProps> = ({
     return () => clearTimeout(timer);
   }, [fetchSalons]);
 
-  const filteredSalons = selectedCategory === 'All'
-    ? salons
-    : salons.filter(s => s.tags?.some(t => t.toLowerCase() === selectedCategory.toLowerCase()));
+  // API already filters by category — use results directly
+  const filteredSalons = salons;
 
   const clearFilters = () => {
     setSearchQuery('');

@@ -20,8 +20,8 @@ class SalonViewSet(viewsets.ModelViewSet):
     serializer_class = SalonSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['city']
-    search_fields = ['name', 'description', 'location']
-    ordering_fields = ['rating', 'review_count', 'created_at']
+    search_fields = ['name', 'description', 'location', 'tags']
+    ordering_fields = ['rating', 'review_count', 'created_at', 'starting_price']
     ordering = ['-rating', '-review_count']
 
     @action(detail=True, methods=['get'])

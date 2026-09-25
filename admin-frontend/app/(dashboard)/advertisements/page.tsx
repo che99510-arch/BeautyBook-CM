@@ -151,9 +151,14 @@ export default function AdvertisementsPage() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setSelectedVideo(file);
+    if (!file) return;
+    const allowed = ['video/mp4', 'video/webm', 'video/quicktime'];
+    if (!allowed.includes(file.type)) {
+      alert('Only MP4, WebM, and MOV video files are supported by browsers.\n\nPlease convert your video to MP4 and try again.');
+      e.target.value = '';
+      return;
     }
+    setSelectedVideo(file);
   };
 
   const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -722,13 +727,13 @@ export default function AdvertisementsPage() {
                   ) : (
                     <div>
                       <p className="text-gray-300 font-medium mb-2">Click to upload video</p>
-                      <p className="text-sm text-gray-500">MP4, MOV, AVI, or WebM (max 100MB)</p>
+                      <p className="text-sm text-gray-500">MP4, MOV, or WebM only (max 100MB)</p>
                     </div>
                   )}
                   <input
                     id="videoUpload"
                     type="file"
-                    accept="video/*"
+                    accept="video/mp4,video/webm,video/quicktime"
                     onChange={handleFileChange}
                     className="hidden"
                   />

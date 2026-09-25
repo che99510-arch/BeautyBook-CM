@@ -171,9 +171,32 @@ class AdminAdvertisementSerializer(serializers.ModelSerializer):
     """Serializer for Advertisement model."""
     salon_name = serializers.CharField(source='salon.name', read_only=True)
     salon_id = serializers.CharField(source='salon.id', read_only=True)
-    video_url = serializers.CharField(read_only=True)
-    thumbnail_url = serializers.CharField(read_only=True)
     is_active = serializers.BooleanField(read_only=True)
+    video_url = serializers.SerializerMethodField()
+    thumbnail_url = serializers.SerializerMethodField()
+
+    def _abs(self, path):
+        """Return absolute URL using request context or BACKEND_URL env var."""
+        import os
+        if not path:
+            return None
+        if str(path).startswith('http'):
+            return str(path)
+        request = self.context.get('request')
+        if request:
+            return request.build_absolute_uri(str(path))
+        base = os.environ.get('BACKEND_URL', '').rstrip('/')
+        return f"{base}{path}" if base else str(path)
+
+    def get_video_url(self, obj):
+        if obj.video:
+            return self._abs(obj.video.url)
+        return None
+
+    def get_thumbnail_url(self, obj):
+        if obj.video_thumbnail:
+            return self._abs(obj.video_thumbnail.url)
+        return None
     
     class Meta:
         model = Advertisement

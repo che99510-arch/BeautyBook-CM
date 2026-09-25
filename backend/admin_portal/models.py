@@ -149,7 +149,7 @@ class Advertisement(models.Model):
     )
     video = models.FileField(
         upload_to='advertisements/videos/',
-        validators=[FileExtensionValidator(allowed_extensions=['mp4', 'mov', 'avi', 'webm'])],
+        validators=[FileExtensionValidator(allowed_extensions=['mp4', 'webm', 'mov'])],
         help_text='Advertisement video file'
     )
     video_thumbnail = models.ImageField(
@@ -268,10 +268,13 @@ class Advertisement(models.Model):
         """Check if ad is currently active."""
         from django.utils import timezone
         today = timezone.now().date()
-        return (
-            self.status == 'active' and
-            self.start_date <= today <= self.end_date
-        )
+        if self.status != 'active':
+            return False
+        if self.start_date and today < self.start_date:
+            return False
+        if self.end_date and today > self.end_date:
+            return False
+        return True
     
     def increment_views(self):
         """Increment view count atomically using queryset update."""

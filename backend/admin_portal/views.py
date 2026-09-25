@@ -848,13 +848,16 @@ class AdminAdvertisementViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'], permission_classes=[])
     def featured(self, request):
         """Get featured advertisements for homepage carousel — public endpoint."""
-        from rest_framework.permissions import AllowAny
         today = timezone.now().date()
+        # Include ads with no dates set (always visible) OR within valid date range
         featured_ads = Advertisement.objects.select_related('salon').filter(
             is_featured=True,
             status='active',
-            start_date__lte=today,
-            end_date__gte=today,
+        ).filter(
+            # No dates set OR dates are valid today
+            Q(start_date__isnull=True) | Q(start_date__lte=today),
+        ).filter(
+            Q(end_date__isnull=True) | Q(end_date__gte=today),
         )[:3]
         serializer = self.get_serializer(featured_ads, many=True)
         return Response(serializer.data)
