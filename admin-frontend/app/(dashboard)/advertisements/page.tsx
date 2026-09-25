@@ -189,21 +189,22 @@ export default function AdvertisementsPage() {
         formData.append('thumbnail', selectedThumbnail);
       }
       
-      // Call the real upload API
       const result = await apiService.uploadAdvertisement(formData);
-      
+
       if (result) {
-        alert(`Advertisement uploaded successfully!\n\nSalon: ${uploadForm.salonId}\nTagline: ${uploadForm.tagline}\nVideo: ${selectedVideo?.name}\n\nThe ad will appear on the customer homepage after approval.`);
-        
         setUploadModalOpen(false);
-        setUploadForm({ salonId: '', tagline: '', description: '', startDate: '', endDate: '', isFeatured: false });
+        setUploadForm({ salonId: '', tagline: '', description: '', startDate: new Date().toISOString().split('T')[0], endDate: new Date(Date.now() + 86400000).toISOString().split('T')[0], isFeatured: false });
         setSelectedVideo(null);
         setSelectedThumbnail(null);
         fetchAdvertisements();
       }
-    } catch (err) {
-      console.error('Failed to upload ad:', err);
-      alert('Failed to upload advertisement');
+        setSelectedVideo(null);
+        setSelectedThumbnail(null);
+        fetchAdvertisements();
+      }
+    } catch (err: any) {
+      const msg = err?.message || 'Upload failed. Please try again.';
+      alert(`Failed to upload advertisement:\n\n${msg}`);
     } finally {
       setUploading(false);
     }
