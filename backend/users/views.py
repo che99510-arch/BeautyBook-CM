@@ -44,22 +44,39 @@ class UserViewSet(viewsets.ModelViewSet):
         raw_username = request.data.get('username') or request.data.get('email')
         password = request.data.get('password')
         if not raw_username or not password:
-            return Response({'error': 'Username and password required.'}, status=status.HTTP_400_BAD_REQUEST)
-        # if email provided, translate to username
+            return Response({'error': 'Email and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Translate email → username
         username = raw_username
         if '@' in raw_username:
             try:
                 user_obj = User.objects.get(email=raw_username)
                 username = user_obj.username
             except User.DoesNotExist:
-                username = raw_username
+                return Response(
+                    {'error': 'No account found with that email address. Please register first.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            except User.MultipleObjectsReturned:
+                # Shouldn't happen but guard anyway
+                user_obj = User.objects.filter(email=raw_username).first()
+                username = user_obj.username
+
         user = authenticate(request, username=username, password=password)
         if user is None:
-            return Response({'error': 'Invalid credentials.'}, status=status.HTTP_400_BAD_REQUEST)
-        # ensure the user is marked as salon owner
+            return Response(
+                {'error': 'Incorrect password. Please try again.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Ensure the user is marked as salon owner
         profile = getattr(user, 'profile', None)
         if not profile or not profile.is_salon_owner:
-            return Response({'error': 'Not a salon owner.'}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                {'error': 'This account is not registered as a salon owner.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
         token, _ = Token.objects.get_or_create(user=user)
         return Response({'token': token.key, 'user': UserSerializer(user).data})
 
@@ -69,22 +86,38 @@ class UserViewSet(viewsets.ModelViewSet):
         raw_username = request.data.get('username') or request.data.get('email')
         password = request.data.get('password')
         if not raw_username or not password:
-            return Response({'error': 'Username/email and password required.'}, status=status.HTTP_400_BAD_REQUEST)
-        # if email provided, translate to username
+            return Response({'error': 'Email and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Translate email → username
         username = raw_username
         if '@' in raw_username:
             try:
                 user_obj = User.objects.get(email=raw_username)
                 username = user_obj.username
             except User.DoesNotExist:
-                username = raw_username
+                return Response(
+                    {'error': 'No account found with that email address. Please register first.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            except User.MultipleObjectsReturned:
+                user_obj = User.objects.filter(email=raw_username).first()
+                username = user_obj.username
+
         user = authenticate(request, username=username, password=password)
         if user is None:
-            return Response({'error': 'Invalid credentials.'}, status=status.HTTP_400_BAD_REQUEST)
-        # ensure the user is NOT a salon owner (regular customer)
+            return Response(
+                {'error': 'Incorrect password. Please try again.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Ensure the user is NOT a salon owner (regular customer)
         profile = getattr(user, 'profile', None)
         if profile and profile.is_salon_owner:
-            return Response({'error': 'Please use salon owner login instead.'}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                {'error': 'This is a salon owner account. Please use the Salon Owner login tab.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
         token, _ = Token.objects.get_or_create(user=user)
         return Response({'token': token.key, 'user': UserSerializer(user).data})
 
