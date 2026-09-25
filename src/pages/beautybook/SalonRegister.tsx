@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { useGoogleAuth } from '@/hooks/useGoogleAuth';
+import { API_BASE } from '@/lib/api';
 
 interface SalonFormData {
   ownerName: string;
@@ -179,7 +180,7 @@ const SalonRegister: React.FC = () => {
         formData.append('images', img.file);
       });
 
-      const response = await fetch('http://127.0.0.1:8000/api/salons/register_owner/', {
+      const response = await fetch(`${API_BASE}/salons/register_owner/`, {
         method: 'POST',
         body: formData,
       });

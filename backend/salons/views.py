@@ -57,7 +57,16 @@ class SalonViewSet(viewsets.ModelViewSet):
         if User.objects.filter(email=email).exists():
             return Response({'error': 'A user with that email already exists.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        username = data.get('username') or email.split('@')[0]
+        # Ensure username is unique — derive from email prefix, append number if taken
+        base_username = data.get('username') or email.split('@')[0]
+        # sanitise: only keep alphanumeric + underscores
+        import re as _re
+        base_username = _re.sub(r'[^\w]', '_', base_username)[:30] or 'user'
+        username = base_username
+        counter = 1
+        while User.objects.filter(username=username).exists():
+            username = f'{base_username}{counter}'
+            counter += 1
         user = User.objects.create_user(username=username, email=email, password=password)
         user.first_name = data.get('first_name', '')
         user.last_name = data.get('last_name', '')

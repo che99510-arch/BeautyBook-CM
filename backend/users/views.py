@@ -211,7 +211,9 @@ class UserViewSet(viewsets.ModelViewSet):
         except User.DoesNotExist:
             # Auto-create account
             username = email.split('@')[0]
-            # Ensure username is unique
+            # sanitise and ensure unique
+            import re as _re
+            username = _re.sub(r'[^\w]', '_', username)[:30] or 'user'
             base = username
             i = 1
             while User.objects.filter(username=username).exists():
@@ -227,7 +229,11 @@ class UserViewSet(viewsets.ModelViewSet):
             )
 
         token, _ = Token.objects.get_or_create(user=user)
-        return Response({'token': token.key, 'user': UserSerializer(user).data})
+        user_data = UserSerializer(user).data
+        # Tell the frontend whether this is a salon owner so it can redirect correctly
+        profile = getattr(user, 'profile', None)
+        user_data['is_salon_owner'] = profile.is_salon_owner if profile else False
+        return Response({'token': token.key, 'user': user_data})
 
 
 class UserProfileViewSet(viewsets.ModelViewSet):

@@ -43,9 +43,17 @@ const Login: React.FC = () => {
   // ── Google OAuth (client only) ────────────────────────────────────────
   const { initButton: initGoogleButton, loading: googleLoading, error: googleError } = useGoogleAuth({
     onSuccess: (token, user) => {
-      localStorage.setItem('customerToken', token);
-      localStorage.setItem('customerUser', JSON.stringify(user));
-      navigate(nextUrl, { replace: true });
+      // If the Google account belongs to a salon owner, route them there
+      if (user?.is_salon_owner || user?.profile?.is_salon_owner) {
+        localStorage.setItem('salonOwnerToken', token);
+        localStorage.setItem('salonOwnerEmail', user.email || '');
+        localStorage.setItem('salonOwnerLoggedIn', 'true');
+        navigate('/salon-dashboard');
+      } else {
+        localStorage.setItem('customerToken', token);
+        localStorage.setItem('customerUser', JSON.stringify(user));
+        navigate(nextUrl, { replace: true });
+      }
     },
     onError: (msg) => setClientError(msg),
   });
