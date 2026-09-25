@@ -20,9 +20,22 @@ class SalonViewSet(viewsets.ModelViewSet):
     serializer_class = SalonSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['city']
-    search_fields = ['name', 'description', 'location', 'tags']
+    search_fields = ['name', 'description', 'location']
     ordering_fields = ['rating', 'review_count', 'created_at', 'starting_price']
     ordering = ['-rating', '-review_count']
+
+    def get_queryset(self):
+        qs = Salon.objects.filter(is_active=True)
+        search = self.request.query_params.get('search', '').strip()
+        if search:
+            # Also search tags JSONField (icontains on the JSON text representation)
+            qs = qs.filter(
+                Q(name__icontains=search) |
+                Q(description__icontains=search) |
+                Q(location__icontains=search) |
+                Q(tags__icontains=search)
+            )
+        return qs
 
     @action(detail=True, methods=['get'])
     def services(self, request, pk=None):
