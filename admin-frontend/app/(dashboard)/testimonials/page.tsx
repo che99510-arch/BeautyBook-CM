@@ -7,8 +7,12 @@ import Cookies from 'js-cookie';
 // ── API helpers ──────────────────────────────────────────────────────────────
 const getApiUrl = () => {
   if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
-  if (typeof window !== 'undefined')
-    return `${window.location.protocol}//${window.location.hostname}:8000/api/admin`;
+  if (typeof window !== 'undefined') {
+    const { protocol, hostname } = window.location;
+    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168.')) {
+      return `${protocol}//${hostname}:8000/api/admin`;
+    }
+  }
   return 'http://localhost:8000/api/admin';
 };
 

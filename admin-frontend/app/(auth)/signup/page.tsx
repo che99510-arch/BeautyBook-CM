@@ -20,7 +20,7 @@ export default function AdminSignupPage() {
 
   useEffect(() => {
     // Check settings — use public endpoint (no auth required)
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/admin'}/public_settings/`)
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/public_settings/`)
       .then(r => r.json())
       .then(data => {
         setSignupOpen(!!data.allow_admin_signup);

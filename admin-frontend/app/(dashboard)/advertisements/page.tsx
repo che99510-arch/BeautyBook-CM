@@ -5,11 +5,21 @@ import apiService from '@/services/api';
 import { Search, ChevronDown, CheckCircle, Clock, XCircle, Eye, TrendingUp, Trash2, Edit2, Video, Upload, AlertCircle, Plus, X } from 'lucide-react';
 import ActionDropdown, { ActionMenuItem } from '@/components/ActionDropdown';
 
-// Dynamic media base — works on localhost and other network devices
-const getMediaBase = () =>
-  typeof window !== 'undefined'
-    ? `${window.location.protocol}//${window.location.hostname}:8000`
-    : 'http://localhost:8000';
+// Dynamic media base — derives from NEXT_PUBLIC_API_URL in production
+const getMediaBase = (): string => {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+  if (apiUrl) {
+    // Strip /api/admin suffix to get the root domain
+    return apiUrl.replace(/\/api\/admin\/?$/, '').replace(/\/api\/?$/, '');
+  }
+  if (typeof window !== 'undefined') {
+    const { protocol, hostname } = window.location;
+    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168.')) {
+      return `${protocol}//${hostname}:8000`;
+    }
+  }
+  return 'http://localhost:8000';
+};
 
 const buildMediaUrl = (url: string | null | undefined): string => {
   if (!url) return '/placeholder-ad.jpg';
