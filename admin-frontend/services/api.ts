@@ -6,14 +6,29 @@ import Cookies from 'js-cookie';
 const getApiUrl = (): string => {
   if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
   if (typeof window !== 'undefined') {
-    return `${window.location.protocol}//${window.location.hostname}:8000/api/admin`;
+    // On localhost/LAN, assume backend is on port 8000
+    const { protocol, hostname } = window.location;
+    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168.')) {
+      return `${protocol}//${hostname}:8000/api/admin`;
+    }
+    // On any other host (Vercel preview etc.) we can't guess — return empty so
+    // requests fail visibly rather than silently hitting the wrong host.
+    return '';
   }
   return 'http://localhost:8000/api/admin';
 };
 
 const getBaseUrl = (): string => {
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    // Strip /admin suffix if present to get the base /api prefix
+    return process.env.NEXT_PUBLIC_API_URL.replace(/\/admin\/?$/, '');
+  }
   if (typeof window !== 'undefined') {
-    return `${window.location.protocol}//${window.location.hostname}:8000/api`;
+    const { protocol, hostname } = window.location;
+    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168.')) {
+      return `${protocol}//${hostname}:8000/api`;
+    }
+    return '';
   }
   return 'http://localhost:8000/api';
 };

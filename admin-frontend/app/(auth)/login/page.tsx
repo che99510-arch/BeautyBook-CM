@@ -15,19 +15,23 @@ export default function LoginPage() {
   const [setupAvailable, setSetupAvailable] = useState(false);
   const [signupOpen, setSignupOpen] = useState(false);
 
+  // Detect misconfigured API URL early
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+  const apiMissing = !apiUrl;
+
   useEffect(() => {
+    if (apiMissing) return; // skip API calls if URL isn't configured
     // Check if first-time setup is still needed
     apiService.checkSetupAvailable()
       .then(r => setSetupAvailable(r.available))
       .catch(() => {});
 
     // Check if admin signup is open (public endpoint — no auth needed)
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/admin';
     fetch(`${apiUrl}/public_settings/`)
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (d) setSignupOpen(!!d.allow_admin_signup); })
       .catch(() => {});
-  }, []);
+  }, [apiMissing, apiUrl]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -68,6 +72,16 @@ export default function LoginPage() {
             <div className="mb-6 p-4 bg-red-900/20 border border-red-700 rounded-lg flex gap-3">
               <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
               <p className="text-red-400 text-sm">{error || localError}</p>
+            </div>
+          )}
+
+          {apiMissing && (
+            <div className="mb-6 p-4 bg-amber-900/20 border border-amber-700 rounded-lg flex gap-3">
+              <AlertCircle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+              <p className="text-amber-400 text-sm">
+                API URL not configured. Set <code className="bg-gray-700 px-1 rounded text-xs">NEXT_PUBLIC_API_URL</code> in Vercel environment variables to{' '}
+                <code className="bg-gray-700 px-1 rounded text-xs">https://beautybook-cm-api.onrender.com/api/admin</code>
+              </p>
             </div>
           )}
 

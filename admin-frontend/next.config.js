@@ -1,11 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  env: {
-    // environment variable preserved for future backend integration;
-    // currently the app uses a mock service and ignores this value
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/admin',
-  },
+  // NEXT_PUBLIC_API_URL must be set in Vercel environment variables:
+  //   https://beautybook-cm-api.onrender.com/api/admin
+  // Do NOT set a hardcoded fallback here — it would override the Vercel env var at build time.
 };
 
 module.exports = nextConfig;
