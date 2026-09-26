@@ -879,6 +879,8 @@ class AdminAdvertisementViewSet(viewsets.ModelViewSet):
             if not end_date:   end_date   = None
 
             print(f"Upload: salon_id={salon_id}, tagline={tagline}, start={start_date}, end={end_date}, files={list(request.FILES.keys())}")
+            print(f"DEFAULT_FILE_STORAGE: {__import__('django.conf', fromlist=['settings']).settings.DEFAULT_FILE_STORAGE}")
+            print(f"CLOUDINARY_URL set: {bool(__import__('os').environ.get('CLOUDINARY_URL'))}")
 
             if not salon_id:
                 return Response({'error': 'Salon ID is required (salonId field)'}, status=400)
@@ -898,24 +900,62 @@ class AdminAdvertisementViewSet(viewsets.ModelViewSet):
                 description=description,
                 is_featured=is_featured,
                 status='pending',
-                # Set dates to None initially to avoid save() comparing str vs date
                 start_date=None,
                 end_date=None,
             )
 
-            # Now set dates (already None-safe strings) and files, then save once
+            # Now set dates and files, then save once
             if start_date:
                 advertisement.start_date = start_date
             if end_date:
                 advertisement.end_date = end_date
+
             if 'video' in request.FILES:
-                advertisement.video = request.FILES['video']
+                video_file = request.FILES['video']
+                # Try direct Cloudinary upload if cloudinary is available
+                cloudinary_url = __import__('os').environ.get('CLOUDINARY_URL', '')
+                if cloudinary_url:
+                    try:
+                        import cloudinary.uploader
+                        result = cloudinary.uploader.upload(
+                            video_file,
+                            resource_type='video',
+                            folder='advertisements/videos',
+                            public_id=video_file.name.rsplit('.', 1)[0],
+                            overwrite=True,
+                        )
+                        # Store the secure URL directly in the field
+                        advertisement.video = result['secure_url']
+                        print(f"Video uploaded to Cloudinary: {result['secure_url']}")
+                    except Exception as ce:
+                        print(f"Cloudinary upload failed, falling back to local: {ce}")
+                        advertisement.video = video_file
+                else:
+                    advertisement.video = video_file
+
             if 'thumbnail' in request.FILES:
-                advertisement.video_thumbnail = request.FILES['thumbnail']
+                thumb_file = request.FILES['thumbnail']
+                cloudinary_url = __import__('os').environ.get('CLOUDINARY_URL', '')
+                if cloudinary_url:
+                    try:
+                        import cloudinary.uploader
+                        result = cloudinary.uploader.upload(
+                            thumb_file,
+                            resource_type='image',
+                            folder='advertisements/thumbnails',
+                            public_id=thumb_file.name.rsplit('.', 1)[0],
+                            overwrite=True,
+                        )
+                        advertisement.video_thumbnail = result['secure_url']
+                        print(f"Thumbnail uploaded to Cloudinary: {result['secure_url']}")
+                    except Exception as ce:
+                        print(f"Cloudinary thumbnail upload failed, falling back to local: {ce}")
+                        advertisement.video_thumbnail = thumb_file
+                else:
+                    advertisement.video_thumbnail = thumb_file
 
             advertisement.save()
 
-            # Refresh from DB so all fields are proper Python types (dates not strings)
             advertisement.refresh_from_db()
             serializer = self.get_serializer(advertisement)
             return Response(serializer.data, status=201)
