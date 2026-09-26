@@ -896,12 +896,18 @@ class AdminAdvertisementViewSet(viewsets.ModelViewSet):
                 salon=salon,
                 tagline=tagline,
                 description=description,
-                start_date=start_date,
-                end_date=end_date,
                 is_featured=is_featured,
                 status='pending',
+                # Set dates to None initially to avoid save() comparing str vs date
+                start_date=None,
+                end_date=None,
             )
 
+            # Now set dates (already None-safe strings) and files, then save once
+            if start_date:
+                advertisement.start_date = start_date
+            if end_date:
+                advertisement.end_date = end_date
             if 'video' in request.FILES:
                 advertisement.video = request.FILES['video']
             if 'thumbnail' in request.FILES:
