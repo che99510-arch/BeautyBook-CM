@@ -148,6 +148,7 @@ if _cloudinary_url:
         'EXCLUDE_DELETE_ORPHANED_MEDIA_UNDER_FOLDER': True,
     }
     MEDIA_URL = '/media/'
+    MEDIA_ROOT = BASE_DIR  # fallback, not used for actual file serving with Cloudinary
 else:
     MEDIA_URL = '/media/'
     MEDIA_ROOT = BASE_DIR

@@ -27,6 +27,8 @@ urlpatterns = [
     path('api-token-auth/', obtain_auth_token),
 ]
 
-# Serve media files in development
-if settings.DEBUG:
+# Serve media files — in dev via Django, in production only if no cloud storage
+import os as _os
+if not _os.environ.get('CLOUDINARY_URL'):
+    # No cloud storage — serve locally (works in both dev and production)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
