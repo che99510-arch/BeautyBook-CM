@@ -213,40 +213,38 @@ class Advertisement(models.Model):
     
     def __str__(self):
         return f"{self.salon.name} - {self.tagline}"
-    
+
+    def _to_date(self, value):
+        """Safely convert value to a date object, returns None on failure."""
+        if value is None:
+            return None
+        if hasattr(value, 'date') and callable(value.date):
+            return value.date()  # datetime → date
+        if hasattr(value, 'strftime'):
+            return value  # already a date
+        try:
+            from datetime import date as _date
+            from django.utils import timezone as _tz
+            return _tz.datetime.strptime(str(value), '%Y-%m-%d').date()
+        except Exception:
+            return None
+
     def save(self, *args, **kwargs):
-        """Auto-generate thumbnail from video if not provided."""
-        # Auto-set status based on dates
+        """Auto-set status based on start/end dates."""
         from django.utils import timezone
         today = timezone.now().date()
-        
-        # Only compare dates if they exist and are date objects
-        if self.start_date and self.end_date:
-            # Convert to date if they're strings
-            if hasattr(self.start_date, 'strftime'):
-                start_date = self.start_date
+
+        start = self._to_date(self.start_date)
+        end   = self._to_date(self.end_date)
+
+        if start and end:
+            if today < start:
+                self.status = 'scheduled'
+            elif today > end:
+                self.status = 'expired'
             else:
-                try:
-                    start_date = timezone.datetime.strptime(self.start_date, '%Y-%m-%d').date()
-                except:
-                    start_date = None
-                    
-            if hasattr(self.end_date, 'strftime'):
-                end_date = self.end_date
-            else:
-                try:
-                    end_date = timezone.datetime.strptime(self.end_date, '%Y-%m-%d').date()
-                except:
-                    end_date = None
-            
-            if start_date and end_date:
-                if today < start_date:
-                    self.status = 'scheduled'
-                elif today > end_date:
-                    self.status = 'expired'
-                else:
-                    self.status = 'active'
-        
+                self.status = 'active'
+
         super().save(*args, **kwargs)
     
     @property
