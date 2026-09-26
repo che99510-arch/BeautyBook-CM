@@ -135,20 +135,27 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # ── Cloudinary media storage (production) ──────────────────────────────────
 _cloudinary_url = os.environ.get('CLOUDINARY_URL', '')
 if _cloudinary_url:
-    import cloudinary
-    cloudinary.config(
-        cloudinary_url=_cloudinary_url,
-        secure=True,  # always use https URLs
-    )
-    INSTALLED_APPS += ['cloudinary_storage', 'cloudinary']
-    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-    CLOUDINARY_STORAGE = {
-        'MEDIA_TAG': 'beautybook_cm',
-        'INVALID_VIDEO_ERROR_MESSAGE': 'Please upload a valid video file.',
-        'EXCLUDE_DELETE_ORPHANED_MEDIA_UNDER_FOLDER': True,
-    }
+    # Parse CLOUDINARY_URL: cloudinary://api_key:api_secret@cloud_name
+    import re as _re
+    _m = _re.match(r'cloudinary://(\d+):([^@]+)@(.+)', _cloudinary_url)
+    if _m:
+        _api_key, _api_secret, _cloud_name = _m.group(1), _m.group(2), _m.group(3)
+        CLOUDINARY_STORAGE = {
+            'CLOUD_NAME': _cloud_name,
+            'API_KEY':    _api_key,
+            'API_SECRET': _api_secret,
+        }
+        import cloudinary
+        cloudinary.config(
+            cloud_name=_cloud_name,
+            api_key=_api_key,
+            api_secret=_api_secret,
+            secure=True,
+        )
+        INSTALLED_APPS += ['cloudinary_storage', 'cloudinary']
+        DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
     MEDIA_URL = '/media/'
-    MEDIA_ROOT = BASE_DIR  # fallback, not used for actual file serving with Cloudinary
+    MEDIA_ROOT = BASE_DIR
 else:
     MEDIA_URL = '/media/'
     MEDIA_ROOT = BASE_DIR
