@@ -657,17 +657,12 @@ export default function AdvertisementsPage() {
             <video 
               src={previewVideo} 
               controls 
-              autoPlay 
+              autoPlay
+              crossOrigin="anonymous"
+              playsInline
               className="w-full rounded-2xl"
-              onLoadStart={() => console.log('Video loading started:', previewVideo)}
-              onCanPlay={() => console.log('Video can play')}
-              onError={(e) => {
-                console.log('Video failed to load:', previewVideo);
-                const isAviFormat = previewVideo?.toLowerCase().includes('.avi');
-                const errorMessage = isAviFormat 
-                  ? 'This video is in .avi format which is not supported by most browsers. Please convert it to .mp4 format for better compatibility.'
-                  : 'Failed to load video. The video file may not be available or the format may not be supported.';
-                alert(errorMessage);
+              onError={() => {
+                alert('Failed to load video. Make sure it was uploaded as MP4, WebM, or MOV.');
                 setPreviewVideo(null);
               }}
             />

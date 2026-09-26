@@ -136,9 +136,17 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 _cloudinary_url = os.environ.get('CLOUDINARY_URL', '')
 if _cloudinary_url:
     import cloudinary
-    cloudinary.config(cloudinary_url=_cloudinary_url)
+    cloudinary.config(
+        cloudinary_url=_cloudinary_url,
+        secure=True,  # always use https URLs
+    )
     INSTALLED_APPS += ['cloudinary_storage', 'cloudinary']
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    CLOUDINARY_STORAGE = {
+        'MEDIA_TAG': 'beautybook_cm',
+        'INVALID_VIDEO_ERROR_MESSAGE': 'Please upload a valid video file.',
+        'EXCLUDE_DELETE_ORPHANED_MEDIA_UNDER_FOLDER': True,
+    }
     MEDIA_URL = '/media/'
 else:
     MEDIA_URL = '/media/'

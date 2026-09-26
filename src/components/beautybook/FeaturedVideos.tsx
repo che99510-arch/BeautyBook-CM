@@ -159,11 +159,13 @@ const FeaturedVideos: React.FC = () => {
                       ref={(el) => (videoRefs.current[idx] = el)}
                       className="absolute inset-0 w-full h-full object-cover"
                       muted
+                      autoPlay
                       loop
                       playsInline
+                      crossOrigin="anonymous"
                       poster={ad.thumbnail_url || undefined}
-                      preload="none"
-                      src={idx === current || idx === (current + 1) % ads.length ? ad.video_url : undefined}
+                      preload="metadata"
+                      src={ad.video_url}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
 
