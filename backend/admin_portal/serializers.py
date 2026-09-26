@@ -175,27 +175,70 @@ class AdminAdvertisementSerializer(serializers.ModelSerializer):
     video_url = serializers.SerializerMethodField()
     thumbnail_url = serializers.SerializerMethodField()
 
-    def _abs(self, path):
-        """Return absolute URL using request context or BACKEND_URL env var."""
+    def _build_url(self, field_value):
+        """
+        Build a usable URL for a media field value.
+
+        Priority:
+        1. Already an absolute URL → return as-is.
+        2. Cloudinary is configured → build proper Cloudinary delivery URL.
+        3. Fallback → use request or BACKEND_URL to build absolute URL.
+        """
         import os
-        if not path:
+        if not field_value:
             return None
-        if str(path).startswith('http'):
-            return str(path)
+
+        # Get the raw stored name (relative path like "advertisements/videos/foo.mp4")
+        name = str(field_value)
+
+        # Already absolute
+        if name.startswith('http://') or name.startswith('https://'):
+            return name
+
+        # Cloudinary configured — build URL manually so we don't depend on
+        # DEFAULT_FILE_STORAGE being active at serialisation time.
+        cloudinary_url = os.environ.get('CLOUDINARY_URL', '')
+        if cloudinary_url:
+            import re as _re
+            m = _re.match(r'cloudinary://\d+:[^@]+@(.+)', cloudinary_url)
+            if m:
+                cloud_name = m.group(1)
+                # Strip leading slash/media prefix if present
+                clean = name.lstrip('/')
+                if clean.startswith('media/'):
+                    clean = clean[len('media/'):]
+                return f"https://res.cloudinary.com/{cloud_name}/video/upload/{clean}"
+
+        # Local / relative path fallback
+        if not name.startswith('/'):
+            name = f"/media/{name}"
         request = self.context.get('request')
         if request:
-            return request.build_absolute_uri(str(path))
+            return request.build_absolute_uri(name)
         base = os.environ.get('BACKEND_URL', '').rstrip('/')
-        return f"{base}{path}" if base else str(path)
+        return f"{base}{name}" if base else name
 
     def get_video_url(self, obj):
         if obj.video:
-            return self._abs(obj.video.url)
+            return self._build_url(obj.video.name if hasattr(obj.video, 'name') else obj.video)
         return None
 
     def get_thumbnail_url(self, obj):
         if obj.video_thumbnail:
-            return self._abs(obj.video_thumbnail.url)
+            raw = obj.video_thumbnail.name if hasattr(obj.video_thumbnail, 'name') else obj.video_thumbnail
+            # Thumbnails are images → swap video/upload for image/upload
+            import os, re as _re
+            if not str(raw).startswith('http'):
+                cloudinary_url = os.environ.get('CLOUDINARY_URL', '')
+                if cloudinary_url:
+                    m = _re.match(r'cloudinary://\d+:[^@]+@(.+)', cloudinary_url)
+                    if m:
+                        cloud_name = m.group(1)
+                        clean = str(raw).lstrip('/')
+                        if clean.startswith('media/'):
+                            clean = clean[len('media/'):]
+                        return f"https://res.cloudinary.com/{cloud_name}/image/upload/{clean}"
+            return self._build_url(raw)
         return None
     
     class Meta:
