@@ -48,13 +48,21 @@ class SalonViewSet(viewsets.ModelViewSet):
         qs = Salon.objects.filter(is_active=True)
         search = self.request.query_params.get('search', '').strip()
         if search:
-            # Also search tags JSONField (icontains on the JSON text representation)
+            from services.models import Service
+            # Find salons whose services match the search term (name or category)
+            matching_salon_ids = Service.objects.filter(
+                Q(name__icontains=search) |
+                Q(category__icontains=search) |
+                Q(description__icontains=search)
+            ).values_list('salon_id', flat=True)
+
             qs = qs.filter(
                 Q(name__icontains=search) |
                 Q(description__icontains=search) |
                 Q(location__icontains=search) |
-                Q(tags__icontains=search)
-            )
+                Q(tags__icontains=search) |
+                Q(id__in=matching_salon_ids)
+            ).distinct()
         return qs
 
     @action(detail=True, methods=['get'])

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, MapPin, SlidersHorizontal, X, ChevronDown, SearchX, Loader, Star, Heart } from 'lucide-react';
+import { Search, MapPin, X, ChevronDown, SearchX, Loader, Star, Heart } from 'lucide-react';
 import { formatPrice } from '@/data/salonData';
 import { API_BASE, MEDIA_BASE } from '@/lib/api';
 
@@ -28,8 +28,18 @@ const buildImgUrl = (url: string | null) => {
   return `${MEDIA_BASE}${url}`;
 };
 
-const SERVICE_CATEGORIES = ['All', 'Hair', 'Nails', 'Makeup', 'Massage'];
+const SERVICE_CATEGORIES = ['All', 'Hair', 'Nails', 'Makeup', 'Massage', 'Spa', 'Bridal'];
 const CITIES = ['All', 'Bamenda', 'Buea', 'Douala', 'Yaounde', 'Bafoussam'];
+
+// Map category display name to the search term sent to the backend
+const CATEGORY_SEARCH_MAP: Record<string, string> = {
+  Hair: 'Hair',
+  Nails: 'Nail',
+  Makeup: 'Makeup',
+  Massage: 'Massage',
+  Spa: 'Spa',
+  Bridal: 'Bridal',
+};
 
 interface SalonListingProps {
   onViewProfile?: (salonId: string) => void;
@@ -55,7 +65,6 @@ const SalonListing: React.FC<SalonListingProps> = ({
   const [selectedCity, setSelectedCity] = useState(initialLocation);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [sortBy, setSortBy] = useState('rating');
-  const [showFilters, setShowFilters] = useState(false);
 
   const fetchSalons = useCallback(async () => {
     try {
@@ -66,10 +75,13 @@ const SalonListing: React.FC<SalonListingProps> = ({
       // City filter
       if (selectedCity && selectedCity !== 'All') params.set('city', selectedCity);
 
-      // Build search: combine free text + selected category
+      // Build search: combine free text + selected category (mapped to backend term)
       const parts: string[] = [];
       if (searchQuery.trim()) parts.push(searchQuery.trim());
-      if (selectedCategory !== 'All') parts.push(selectedCategory);
+      if (selectedCategory !== 'All') {
+        const categoryTerm = CATEGORY_SEARCH_MAP[selectedCategory] || selectedCategory;
+        parts.push(categoryTerm);
+      }
       if (parts.length > 0) params.set('search', parts.join(' '));
 
       // Ordering
@@ -116,6 +128,7 @@ const SalonListing: React.FC<SalonListingProps> = ({
       {/* Search Header */}
       <div className="bg-white border-b border-gray-100 sticky top-16 lg:top-20 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          {/* Row 1: search + location + sort */}
           <div className="flex flex-col lg:flex-row gap-3">
             <div className="flex-1 flex items-center gap-3 px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus-within:border-[#6D28D9] focus-within:ring-2 focus-within:ring-[#6D28D9]/10 transition-all">
               <Search className="w-5 h-5 text-gray-400 flex-shrink-0" />
@@ -149,47 +162,43 @@ const SalonListing: React.FC<SalonListingProps> = ({
               <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
             </div>
 
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-medium transition-all duration-300 ${showFilters ? 'bg-[#6D28D9] text-white' : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100'}`}
+            {/* Sort — always visible */}
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-sm text-[#111827] focus:outline-none focus:border-[#6D28D9] cursor-pointer min-w-[180px]"
             >
-              <SlidersHorizontal className="w-4 h-4" />
-              Filters
-            </button>
+              <option value="rating">⭐ Highest Rated</option>
+              <option value="reviews">💬 Most Reviewed</option>
+              <option value="price-low">💰 Price: Low → High</option>
+              <option value="price-high">💸 Price: High → Low</option>
+            </select>
           </div>
 
-          {showFilters && (
-            <div className="mt-4 pt-4 border-t border-gray-100 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div>
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">Service Type</label>
-                <div className="flex flex-wrap gap-2">
-                  {SERVICE_CATEGORIES.map((cat) => (
-                    <button key={cat} onClick={() => setSelectedCategory(cat)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${selectedCategory === cat ? 'bg-[#6D28D9] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
-                      {cat}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">Sort By</label>
-                <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-gray-100 text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#6D28D9]/20 cursor-pointer">
-                  <option value="rating">Highest Rated</option>
-                  <option value="reviews">Most Reviewed</option>
-                  <option value="price-low">Price: Low to High</option>
-                  <option value="price-high">Price: High to Low</option>
-                </select>
-              </div>
-              <div className="flex items-end">
-                {hasActiveFilters && (
-                  <button onClick={clearFilters} className="px-4 py-2 rounded-lg text-sm font-medium text-red-500 bg-red-50 hover:bg-red-100 transition-colors">
-                    Clear All Filters
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
+          {/* Row 2: service category tabs — always visible */}
+          <div className="mt-3 flex flex-wrap gap-2">
+            {SERVICE_CATEGORIES.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 ${
+                  selectedCategory === cat
+                    ? 'bg-[#6D28D9] text-white shadow-md shadow-purple-200'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+            {hasActiveFilters && (
+              <button
+                onClick={clearFilters}
+                className="px-4 py-1.5 rounded-full text-xs font-semibold text-red-500 bg-red-50 hover:bg-red-100 transition-colors ml-auto"
+              >
+                ✕ Clear Filters
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

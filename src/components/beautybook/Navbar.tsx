@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, Scissors, User, LogIn, LogOut, CalendarDays } from 'lucide-react';
+import { Menu, Scissors, User, LogIn, LogOut, CalendarDays, LayoutDashboard } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -13,6 +13,9 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
   const { user, isAuthenticated, logout } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Detect salon owner session separately from customer session
+  const isSalonOwner = !!localStorage.getItem('salonOwnerToken');
 
   const navLinks = [
     { label: 'Home', page: 'landing' },
@@ -86,6 +89,19 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
 
           {/* Auth Buttons */}
           <div className="hidden md:flex items-center gap-3">
+            {isSalonOwner && (
+              <button
+                onClick={() => navigateRouter('/salon-dashboard')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 ${
+                  isScrolled || currentPage !== 'landing'
+                    ? 'text-[#6D28D9] bg-[#6D28D9]/10 hover:bg-[#6D28D9]/20'
+                    : 'text-white bg-white/10 hover:bg-white/20'
+                }`}
+              >
+                <LayoutDashboard className="w-4 h-4" />
+                My Dashboard
+              </button>
+            )}
             {isAuthenticated ? (
               <>
                 <button
@@ -186,6 +202,15 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
               </button>
             ))}
             <div className="border-t border-gray-100 pt-2">
+              {isSalonOwner && (
+                <button
+                  onClick={() => { navigateRouter('/salon-dashboard'); setMobileMenuOpen(false); }}
+                  className="w-full text-left px-4 py-2 rounded-lg text-sm font-medium text-[#6D28D9] bg-[#6D28D9]/5 hover:bg-[#6D28D9]/10 flex items-center gap-2 mb-1"
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                  My Dashboard
+                </button>
+              )}
               <button
                 onClick={() => {
                   navigateRouter('/login');
