@@ -11,7 +11,7 @@ FREE_PERIOD_MONTHS = 3  # configurable — change here or move to PlatformSettin
 class UserProfile(models.Model):
     """Extended user profile model."""
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
+    avatar = models.ImageField(upload_to='avatars/', max_length=500, null=True, blank=True)
     bio = models.TextField(blank=True, null=True)
     phone = models.CharField(max_length=20, blank=True, null=True)
     address = models.CharField(max_length=255, blank=True, null=True)

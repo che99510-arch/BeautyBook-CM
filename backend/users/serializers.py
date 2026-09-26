@@ -1,11 +1,35 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from users.models import UserProfile
+import os
+
+
+def _field_url(field, request=None):
+    """Safely get URL from an ImageField that may store a full Cloudinary URL."""
+    if not field:
+        return None
+    name = str(field.name) if hasattr(field, 'name') else str(field)
+    if name.startswith('http://') or name.startswith('https://'):
+        return name
+    try:
+        url = field.url
+        if url.startswith('http'):
+            return url
+        if request:
+            return request.build_absolute_uri(url)
+        base = os.environ.get('BACKEND_URL', '').rstrip('/')
+        return f"{base}{url}" if base else url
+    except Exception:
+        return None
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
     """Serializer for UserProfile model."""
     is_in_free_period = serializers.BooleanField(read_only=True)
+    avatar = serializers.SerializerMethodField()
+
+    def get_avatar(self, obj):
+        return _field_url(obj.avatar, self.context.get('request'))
 
     class Meta:
         model = UserProfile

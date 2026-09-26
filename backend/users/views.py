@@ -125,6 +125,29 @@ class UserViewSet(viewsets.ModelViewSet):
     def update_profile(self, request):
         """Update the current user's profile."""
         user = request.user
+        profile = user.profile
+
+        # Handle avatar upload directly to Cloudinary
+        if 'avatar' in request.FILES:
+            import os, cloudinary.uploader
+            if os.environ.get('CLOUDINARY_URL'):
+                try:
+                    result = cloudinary.uploader.upload(
+                        request.FILES['avatar'],
+                        resource_type='image',
+                        folder='avatars',
+                        overwrite=True,
+                    )
+                    profile.avatar = result['secure_url']
+                    profile.save()
+                except Exception as e:
+                    print(f"Cloudinary avatar upload error: {e}")
+                    profile.avatar = request.FILES['avatar']
+                    profile.save()
+            else:
+                profile.avatar = request.FILES['avatar']
+                profile.save()
+
         serializer = UserSerializer(user, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()

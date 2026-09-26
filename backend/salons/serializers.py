@@ -16,6 +16,19 @@ def _abs_url(request, path):
     return f"{base}{s}" if base else s
 
 
+def _field_url(field, request):
+    """Safely get URL from an ImageField/FileField that may store a full URL."""
+    if not field:
+        return None
+    name = str(field.name) if hasattr(field, 'name') else str(field)
+    if name.startswith('http://') or name.startswith('https://'):
+        return name
+    try:
+        return _abs_url(request, field.url)
+    except Exception:
+        return _abs_url(request, f"/media/{name}")
+
+
 class SalonSerializer(serializers.ModelSerializer):
     """Serializer for Salon model."""
     owner = serializers.PrimaryKeyRelatedField(read_only=True)
@@ -24,10 +37,10 @@ class SalonSerializer(serializers.ModelSerializer):
     cover_image = serializers.SerializerMethodField()
 
     def get_image(self, obj):
-        return _abs_url(self.context.get('request'), obj.image.url if obj.image else None)
+        return _field_url(obj.image, self.context.get('request'))
 
     def get_cover_image(self, obj):
-        return _abs_url(self.context.get('request'), obj.cover_image.url if obj.cover_image else None)
+        return _field_url(obj.cover_image, self.context.get('request'))
 
     class Meta:
         model = Salon

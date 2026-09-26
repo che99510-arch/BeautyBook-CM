@@ -14,6 +14,26 @@ from bookings.models import Booking
 from services.models import Service
 
 
+def _upload_to_cloudinary(file_obj, folder, resource_type='image'):
+    """Upload a file directly to Cloudinary. Returns the secure URL or None on failure."""
+    import os
+    cloudinary_url = os.environ.get('CLOUDINARY_URL', '')
+    if not cloudinary_url:
+        return None
+    try:
+        import cloudinary.uploader
+        result = cloudinary.uploader.upload(
+            file_obj,
+            resource_type=resource_type,
+            folder=folder,
+            overwrite=True,
+        )
+        return result['secure_url']
+    except Exception as e:
+        print(f"Cloudinary upload error: {e}")
+        return None
+
+
 class SalonViewSet(viewsets.ModelViewSet):
     """ViewSet for Salon model."""
     queryset = Salon.objects.filter(is_active=True)
@@ -105,9 +125,11 @@ class SalonViewSet(viewsets.ModelViewSet):
         # handle images
         images = request.FILES.getlist('images')
         if images:
-            salon.image = images[0]
+            url = _upload_to_cloudinary(images[0], 'salon_images')
+            salon.image = url if url else images[0]
             if len(images) > 1:
-                salon.cover_image = images[1]
+                cover_url = _upload_to_cloudinary(images[1], 'salon_covers')
+                salon.cover_image = cover_url if cover_url else images[1]
             salon.save()
 
         serializer = SalonSerializer(salon)

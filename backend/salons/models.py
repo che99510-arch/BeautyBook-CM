@@ -33,8 +33,8 @@ class Salon(models.Model):
         blank=True,
         null=True
     )
-    image = models.ImageField(upload_to='salon_images/', null=True, blank=True)
-    cover_image = models.ImageField(upload_to='salon_covers/', null=True, blank=True)
+    image = models.ImageField(upload_to='salon_images/', max_length=500, null=True, blank=True)
+    cover_image = models.ImageField(upload_to='salon_covers/', max_length=500, null=True, blank=True)
     rating = models.FloatField(
         default=0.0,
         validators=[MinValueValidator(0.0), MaxValueValidator(5.0)]
