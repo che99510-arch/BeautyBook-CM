@@ -291,26 +291,31 @@ export default function AdvertisementsPage() {
     try {
       if (actionType === 'delete') {
         await apiService.deleteAdvertisement(selectedAd.id);
-        alert(`Deleted advertisement successfully!`);
         setDeleteModalOpen(false);
       } else if (actionType === 'activate') {
         await apiService.activateAdvertisement(selectedAd.id);
-        alert(`Activated advertisement successfully!`);
         setActionModalOpen(false);
       } else if (actionType === 'pause') {
         await apiService.pauseAdvertisement(selectedAd.id);
-        alert(`Paused advertisement successfully!`);
         setActionModalOpen(false);
       } else if (actionType === 'reactivate') {
         await apiService.reactivateAdvertisement(selectedAd.id);
-        alert(`Reactivated advertisement successfully!`);
         setActionModalOpen(false);
       }
       setSelectedAd(null);
       fetchAdvertisements();
-    } catch (err) {
-      console.error('Failed to perform action:', err);
-      alert('Failed to perform action');
+    } catch (err: any) {
+      const msg = err?.message || 'Action failed';
+      // If the ad doesn't exist, close modal and refresh list
+      if (msg.includes('No Advertisement') || msg.includes('404') || msg.includes('Not Found')) {
+        alert('This advertisement no longer exists. The list will be refreshed.');
+      } else {
+        alert(`Failed: ${msg}`);
+      }
+      setDeleteModalOpen(false);
+      setActionModalOpen(false);
+      setSelectedAd(null);
+      fetchAdvertisements();
     }
   };
 
