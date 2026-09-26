@@ -564,7 +564,9 @@ const SalonDetail: React.FC = () => {
 
   const coverImg = salon.cover_image
     ? (salon.cover_image.startsWith('http') ? salon.cover_image : `${MEDIA_BASE}${salon.cover_image}`)
-    : 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=1200&h=400&fit=crop';
+    : salon.image
+      ? (salon.image.startsWith('http') ? salon.image : `${MEDIA_BASE}${salon.image}`)
+      : 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=1200&h=400&fit=crop';
 
   return (
     <div className="min-h-screen bg-gray-50">
