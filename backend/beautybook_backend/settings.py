@@ -154,7 +154,10 @@ if _cloudinary_url:
         )
         INSTALLED_APPS += ['cloudinary_storage', 'cloudinary']
         DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-    MEDIA_URL = '/media/'
+        # With Cloudinary, media URLs are absolute (served by Cloudinary CDN)
+        MEDIA_URL = f'https://res.cloudinary.com/{_cloud_name}/'
+    else:
+        MEDIA_URL = '/media/'
     MEDIA_ROOT = BASE_DIR
 else:
     MEDIA_URL = '/media/'
