@@ -268,9 +268,11 @@ class Advertisement(models.Model):
         today = timezone.now().date()
         if self.status != 'active':
             return False
-        if self.start_date and today < self.start_date:
+        start = self._to_date(self.start_date)
+        end   = self._to_date(self.end_date)
+        if start and today < start:
             return False
-        if self.end_date and today > self.end_date:
+        if end and today > end:
             return False
         return True
     

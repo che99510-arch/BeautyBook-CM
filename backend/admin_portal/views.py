@@ -914,6 +914,9 @@ class AdminAdvertisementViewSet(viewsets.ModelViewSet):
                 advertisement.video_thumbnail = request.FILES['thumbnail']
 
             advertisement.save()
+
+            # Refresh from DB so all fields are proper Python types (dates not strings)
+            advertisement.refresh_from_db()
             serializer = self.get_serializer(advertisement)
             return Response(serializer.data, status=201)
 
