@@ -203,10 +203,6 @@ export default function AdvertisementsPage() {
         setSelectedThumbnail(null);
         fetchAdvertisements();
       }
-        setSelectedVideo(null);
-        setSelectedThumbnail(null);
-        fetchAdvertisements();
-      }
     } catch (err: any) {
       const msg = err?.message || 'Upload failed. Please try again.';
       alert(`Failed to upload advertisement:\n\n${msg}`);
