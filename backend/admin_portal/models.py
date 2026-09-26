@@ -149,11 +149,13 @@ class Advertisement(models.Model):
     )
     video = models.FileField(
         upload_to='advertisements/videos/',
+        max_length=500,
         validators=[FileExtensionValidator(allowed_extensions=['mp4', 'webm', 'mov'])],
         help_text='Advertisement video file'
     )
     video_thumbnail = models.ImageField(
         upload_to='advertisements/thumbnails/',
+        max_length=500,
         blank=True,
         null=True,
         help_text='Video thumbnail image'
