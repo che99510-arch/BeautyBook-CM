@@ -10,12 +10,22 @@ interface NavbarProps {
 
 const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
   const navigateRouter = useNavigate();
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, logout, isLoading } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Detect salon owner session separately from customer session
-  const isSalonOwner = !!localStorage.getItem('salonOwnerToken');
+  // Read on every render so it stays in sync after login
+  const [isSalonOwner, setIsSalonOwner] = useState(!!localStorage.getItem('salonOwnerToken'));
+
+  // Keep isSalonOwner in sync when storage changes (e.g. after Google login)
+  useEffect(() => {
+    const sync = () => setIsSalonOwner(!!localStorage.getItem('salonOwnerToken'));
+    window.addEventListener('storage', sync);
+    // Also re-check whenever auth state changes
+    sync();
+    return () => window.removeEventListener('storage', sync);
+  }, [isAuthenticated]);
 
   const navLinks = [
     { label: 'Home', page: 'landing' },
@@ -89,7 +99,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
 
           {/* Auth Buttons */}
           <div className="hidden md:flex items-center gap-3">
-            {isSalonOwner && (
+            {!isLoading && isSalonOwner && (
               <button
                 onClick={() => navigateRouter('/salon-dashboard')}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 ${
@@ -102,10 +112,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
                 My Dashboard
               </button>
             )}
-            {isAuthenticated ? (
-              <>
-                <button
-                  onClick={() => navigateRouter('/my-bookings')}
+            {!isLoading && isAuthenticated ? (
                   className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 ${
                     isScrolled || currentPage !== 'landing'
                       ? 'text-[#111827]/70 hover:text-[#6D28D9] hover:bg-[#6D28D9]/5'
@@ -202,7 +209,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
               </button>
             ))}
             <div className="border-t border-gray-100 pt-2">
-              {isSalonOwner && (
+              {!isLoading && isSalonOwner && (
                 <button
                   onClick={() => { navigateRouter('/salon-dashboard'); setMobileMenuOpen(false); }}
                   className="w-full text-left px-4 py-2 rounded-lg text-sm font-medium text-[#6D28D9] bg-[#6D28D9]/5 hover:bg-[#6D28D9]/10 flex items-center gap-2 mb-1"
@@ -221,10 +228,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
                 <LogIn className="w-4 h-4 text-[#6D28D9]" />
                 Sign In
               </button>
-              {isAuthenticated ? (
-                <>
-                  <button
-                    onClick={() => { navigateRouter('/my-bookings'); setMobileMenuOpen(false); }}
+              {!isLoading && isAuthenticated ? (
                     className="w-full text-left px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                   >
                     <CalendarDays className="w-4 h-4 text-[#6D28D9]" />
