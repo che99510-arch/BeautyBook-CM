@@ -240,6 +240,7 @@ class UserViewSet(viewsets.ModelViewSet):
         """
         import urllib.request
         import json as json_lib
+        import os
 
         id_token = request.data.get('id_token', '').strip()
         if not id_token:
@@ -253,7 +254,11 @@ class UserViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({'error': f'Google token verification failed: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Validate audience — accept any client_id for now (dev mode)
+        # Validate audience — must match our client ID(s)
+        google_client_id = os.environ.get('GOOGLE_CLIENT_ID', '').strip()
+        token_aud = payload.get('aud', '')
+        if google_client_id and token_aud != google_client_id:
+            return Response({'error': 'Invalid token audience.'}, status=status.HTTP_400_BAD_REQUEST)
         email = payload.get('email')
         if not email or not payload.get('email_verified'):
             return Response({'error': 'Email not verified by Google.'}, status=status.HTTP_400_BAD_REQUEST)
