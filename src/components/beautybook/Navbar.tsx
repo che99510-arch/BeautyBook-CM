@@ -13,16 +13,12 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
   const { user, isAuthenticated, logout, isLoading } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  // Detect salon owner session separately from customer session
-  // Read on every render so it stays in sync after login
   const [isSalonOwner, setIsSalonOwner] = useState(!!localStorage.getItem('salonOwnerToken'));
 
-  // Keep isSalonOwner in sync when storage changes (e.g. after Google login)
+  // Keep isSalonOwner in sync when auth state changes or storage is updated
   useEffect(() => {
     const sync = () => setIsSalonOwner(!!localStorage.getItem('salonOwnerToken'));
     window.addEventListener('storage', sync);
-    // Also re-check whenever auth state changes
     sync();
     return () => window.removeEventListener('storage', sync);
   }, [isAuthenticated]);
@@ -33,9 +29,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
   ];
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
+    const handleScroll = () => setIsScrolled(window.scrollY > 10);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -46,6 +40,14 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
     onNavigate('landing');
   };
 
+  const linkClass = (active: boolean) =>
+    `px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 ${
+      active
+        ? 'bg-[#6D28D9]/10 text-[#6D28D9]'
+        : isScrolled || currentPage !== 'landing'
+        ? 'text-[#111827]/70 hover:text-[#6D28D9] hover:bg-[#6D28D9]/5'
+        : 'text-white/80 hover:text-white hover:bg-white/10'
+    }`;
 
   return (
     <nav
@@ -59,11 +61,9 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 lg:h-20">
+
           {/* Logo */}
-          <button
-            onClick={() => onNavigate('landing')}
-            className="flex items-center gap-2 group"
-          >
+          <button onClick={() => onNavigate('landing')} className="flex items-center gap-2 group">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#6D28D9] to-[#7C3AED] flex items-center justify-center shadow-lg group-hover:shadow-purple-300 transition-shadow duration-300">
               <Scissors className="w-5 h-5 text-white" />
             </div>
@@ -77,27 +77,16 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
             </div>
           </button>
 
-
-          {/* Desktop navigation links */}
+          {/* Desktop nav links */}
           <div className="hidden md:flex items-center gap-1">
-            {navLinks.map((link) => (
-              <button
-                key={link.page}
-                onClick={() => onNavigate(link.page)}
-                className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 ${
-                  currentPage === link.page
-                    ? 'bg-[#6D28D9]/10 text-[#6D28D9]'
-                    : isScrolled || currentPage !== 'landing'
-                    ? 'text-[#111827]/70 hover:text-[#6D28D9] hover:bg-[#6D28D9]/5'
-                    : 'text-white/80 hover:text-white hover:bg-white/10'
-                }`}
-              >
+            {navLinks.map(link => (
+              <button key={link.page} onClick={() => onNavigate(link.page)} className={linkClass(currentPage === link.page)}>
                 {link.label}
               </button>
             ))}
           </div>
 
-          {/* Auth Buttons */}
+          {/* Desktop auth buttons */}
           <div className="hidden md:flex items-center gap-3">
             {!isLoading && isSalonOwner && (
               <button
@@ -112,24 +101,14 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
                 My Dashboard
               </button>
             )}
+
             {!isLoading && isAuthenticated ? (
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 ${
-                    isScrolled || currentPage !== 'landing'
-                      ? 'text-[#111827]/70 hover:text-[#6D28D9] hover:bg-[#6D28D9]/5'
-                      : 'text-white/80 hover:text-white hover:bg-white/10'
-                  }`}
-                >
+              <>
+                <button onClick={() => navigateRouter('/my-bookings')} className={linkClass(false)}>
                   <CalendarDays className="w-4 h-4" />
                   My Bookings
                 </button>
-                <button
-                  onClick={() => navigateRouter('/profile')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 ${
-                    isScrolled || currentPage !== 'landing'
-                      ? 'text-[#111827]/70 hover:text-[#6D28D9] hover:bg-[#6D28D9]/5'
-                      : 'text-white/80 hover:text-white hover:bg-white/10'
-                  }`}
-                >
+                <button onClick={() => navigateRouter('/profile')} className={linkClass(false)}>
                   <div className="w-6 h-6 rounded-full bg-[#6D28D9] flex items-center justify-center">
                     <span className="text-white text-xs font-bold">
                       {(user?.first_name?.[0] || user?.username?.[0] || '?').toUpperCase()}
@@ -137,28 +116,18 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
                   </div>
                   {user?.first_name || user?.username}
                 </button>
-                <button
-                  onClick={handleLogout}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 ${
-                    isScrolled || currentPage !== 'landing'
-                      ? 'text-[#111827]/70 hover:text-red-600 hover:bg-red-50'
-                      : 'text-white/80 hover:text-white hover:bg-white/10'
-                  }`}
-                >
+                <button onClick={handleLogout} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 ${
+                  isScrolled || currentPage !== 'landing'
+                    ? 'text-[#111827]/70 hover:text-red-600 hover:bg-red-50'
+                    : 'text-white/80 hover:text-white hover:bg-white/10'
+                }`}>
                   <LogOut className="w-4 h-4" />
                   Logout
                 </button>
               </>
-            ) : (
+            ) : !isLoading ? (
               <>
-                <button
-                  onClick={() => navigateRouter('/login')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 ${
-                    isScrolled || currentPage !== 'landing'
-                      ? 'text-[#111827]/70 hover:text-[#6D28D9] hover:bg-[#6D28D9]/5'
-                      : 'text-white/80 hover:text-white hover:bg-white/10'
-                  }`}
-                >
+                <button onClick={() => navigateRouter('/login')} className={linkClass(false)}>
                   <LogIn className="w-4 h-4" />
                   Sign In
                 </button>
@@ -170,10 +139,10 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
                   Register
                 </button>
               </>
-            )}
+            ) : null}
           </div>
 
-          {/* mobile menu toggle */}
+          {/* Mobile menu toggle */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className={`md:hidden p-2 rounded-xl transition-colors duration-300 ${
@@ -184,30 +153,25 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
           >
             <Menu className="w-6 h-6" />
           </button>
-
         </div>
       </div>
 
-      {/* mobile dropdown menu */}
+      {/* Mobile dropdown */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-white border-t border-gray-100 shadow-xl">
           <div className="px-4 py-3 space-y-1">
-            {navLinks.map((link) => (
+            {navLinks.map(link => (
               <button
                 key={link.page}
-                onClick={() => {
-                  onNavigate(link.page);
-                  setMobileMenuOpen(false);
-                }}
+                onClick={() => { onNavigate(link.page); setMobileMenuOpen(false); }}
                 className={`w-full text-left px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
-                  currentPage === link.page
-                    ? 'bg-[#6D28D9]/10 text-[#6D28D9]'
-                    : 'text-gray-700 hover:bg-gray-50'
+                  currentPage === link.page ? 'bg-[#6D28D9]/10 text-[#6D28D9]' : 'text-gray-700 hover:bg-gray-50'
                 }`}
               >
                 {link.label}
               </button>
             ))}
+
             <div className="border-t border-gray-100 pt-2">
               {!isLoading && isSalonOwner && (
                 <button
@@ -218,17 +182,11 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
                   My Dashboard
                 </button>
               )}
-              <button
-                onClick={() => {
-                  navigateRouter('/login');
-                  setMobileMenuOpen(false);
-                }}
-                className="w-full text-left px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-              >
-                <LogIn className="w-4 h-4 text-[#6D28D9]" />
-                Sign In
-              </button>
+
               {!isLoading && isAuthenticated ? (
+                <>
+                  <button
+                    onClick={() => { navigateRouter('/my-bookings'); setMobileMenuOpen(false); }}
                     className="w-full text-left px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                   >
                     <CalendarDays className="w-4 h-4 text-[#6D28D9]" />
@@ -251,17 +209,23 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
                     Logout
                   </button>
                 </>
-              ) : (
-                <button
-                  onClick={() => {
-                    navigateRouter('/register');
-                    setMobileMenuOpen(false);
-                  }}
-                  className="w-full text-left px-4 py-2 rounded-lg text-sm font-semibold bg-gradient-to-r from-[#6D28D9] to-[#7C3AED] text-white hover:opacity-90"
-                >
-                  Register
-                </button>
-              )}
+              ) : !isLoading ? (
+                <>
+                  <button
+                    onClick={() => { navigateRouter('/login'); setMobileMenuOpen(false); }}
+                    className="w-full text-left px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                  >
+                    <LogIn className="w-4 h-4 text-[#6D28D9]" />
+                    Sign In
+                  </button>
+                  <button
+                    onClick={() => { navigateRouter('/register'); setMobileMenuOpen(false); }}
+                    className="w-full text-left px-4 py-2 rounded-lg text-sm font-semibold bg-gradient-to-r from-[#6D28D9] to-[#7C3AED] text-white hover:opacity-90"
+                  >
+                    Register
+                  </button>
+                </>
+              ) : null}
             </div>
           </div>
         </div>
