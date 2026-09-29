@@ -5,6 +5,7 @@ import apiService from '@/services/api';
 import {
   Search, ChevronDown, CheckCircle, XCircle, Clock, Loader2,
   Eye, Edit2, Trash2, TrendingUp, X, Star, MapPin, Phone, Calendar,
+  ImageIcon, Users, DollarSign,
 } from 'lucide-react';
 import ActionDropdown, { ActionMenuItem } from '@/components/ActionDropdown';
 import Pagination from '@/components/Pagination';
@@ -21,7 +22,14 @@ interface Salon {
   rating: number;
   review_count?: number;
   phone?: string;
+  whatsapp?: string;
+  mobile_money?: string;
+  workers?: string;
   starting_price?: number;
+  description?: string;
+  image?: string | null;
+  cover_image?: string | null;
+  open_hours?: string;
 }
 
 const statusConfig = {
@@ -35,6 +43,150 @@ function Toast({ msg, type }: { msg: string; type: 'success' | 'error' }) {
     <div className={`fixed top-4 right-4 z-50 px-5 py-3 rounded-xl shadow-lg text-sm font-medium text-white
       ${type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
       {msg}
+    </div>
+  );
+}
+
+// ── Salon Details Modal ────────────────────────────────────────────────────
+function SalonDetailsModal({ salon, onClose, onApprove, onSuspend }: {
+  salon: Salon;
+  onClose: () => void;
+  onApprove: (id: string) => void;
+  onSuspend: (id: string) => void;
+}) {
+  const [imgError, setImgError] = useState<Record<string, boolean>>({});
+
+  return (
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div
+        className="bg-gray-800 rounded-2xl max-w-2xl w-full border border-gray-700 overflow-y-auto max-h-[90vh]"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-700">
+          <div>
+            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+              <Eye className="w-5 h-5 text-purple-400" /> Salon Details
+            </h2>
+            <p className="text-sm text-gray-400 mt-0.5">{salon.name}</p>
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-white transition">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="p-6 space-y-6">
+          {/* Images section */}
+          <div>
+            <h3 className="text-sm font-semibold text-gray-300 mb-3 flex items-center gap-2">
+              <ImageIcon className="w-4 h-4 text-purple-400" /> Uploaded Images
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              {/* Main image */}
+              <div className="space-y-1.5">
+                <p className="text-xs text-gray-500 uppercase tracking-wide">Salon Image</p>
+                {salon.image && !imgError['image'] ? (
+                  <img
+                    src={salon.image}
+                    alt="Salon"
+                    onError={() => setImgError(p => ({ ...p, image: true }))}
+                    className="w-full h-44 object-cover rounded-xl border border-gray-600"
+                  />
+                ) : (
+                  <div className="w-full h-44 rounded-xl border border-dashed border-gray-600 flex flex-col items-center justify-center gap-2 bg-gray-700/30">
+                    <ImageIcon className="w-8 h-8 text-gray-500" />
+                    <span className="text-xs text-gray-500">No image uploaded</span>
+                  </div>
+                )}
+              </div>
+              {/* Cover image */}
+              <div className="space-y-1.5">
+                <p className="text-xs text-gray-500 uppercase tracking-wide">Cover Image</p>
+                {salon.cover_image && !imgError['cover'] ? (
+                  <img
+                    src={salon.cover_image}
+                    alt="Cover"
+                    onError={() => setImgError(p => ({ ...p, cover: true }))}
+                    className="w-full h-44 object-cover rounded-xl border border-gray-600"
+                  />
+                ) : (
+                  <div className="w-full h-44 rounded-xl border border-dashed border-gray-600 flex flex-col items-center justify-center gap-2 bg-gray-700/30">
+                    <ImageIcon className="w-8 h-8 text-gray-500" />
+                    <span className="text-xs text-gray-500">No cover uploaded</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Info grid */}
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            <div className="bg-gray-700/40 rounded-xl p-3 space-y-0.5">
+              <p className="text-xs text-gray-500">Owner</p>
+              <p className="text-white font-medium">{salon.owner_name || 'N/A'}</p>
+              <p className="text-gray-400 text-xs">{salon.owner_email}</p>
+            </div>
+            <div className="bg-gray-700/40 rounded-xl p-3 space-y-0.5">
+              <p className="text-xs text-gray-500">Location</p>
+              <p className="text-white font-medium">{salon.location}</p>
+              <p className="text-gray-400 text-xs">{salon.city}</p>
+            </div>
+            {salon.phone && (
+              <div className="bg-gray-700/40 rounded-xl p-3 space-y-0.5">
+                <p className="text-xs text-gray-500">Phone</p>
+                <p className="text-white">{salon.phone}</p>
+                {salon.whatsapp && <p className="text-gray-400 text-xs">WhatsApp: {salon.whatsapp}</p>}
+              </div>
+            )}
+            {salon.workers && (
+              <div className="bg-gray-700/40 rounded-xl p-3 space-y-0.5">
+                <p className="text-xs text-gray-500">Team Size</p>
+                <p className="text-white">{salon.workers} workers</p>
+              </div>
+            )}
+            {salon.open_hours && (
+              <div className="bg-gray-700/40 rounded-xl p-3 space-y-0.5">
+                <p className="text-xs text-gray-500">Open Hours</p>
+                <p className="text-white text-xs">{salon.open_hours}</p>
+              </div>
+            )}
+            <div className="bg-gray-700/40 rounded-xl p-3 space-y-0.5">
+              <p className="text-xs text-gray-500">Registered</p>
+              <p className="text-white text-xs">{new Date(salon.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+            </div>
+          </div>
+
+          {/* Description */}
+          {salon.description && (
+            <div>
+              <p className="text-xs text-gray-500 uppercase tracking-wide mb-1.5">Description</p>
+              <p className="text-gray-300 text-sm leading-relaxed bg-gray-700/30 rounded-xl p-3">{salon.description}</p>
+            </div>
+          )}
+        </div>
+
+        {/* Footer actions */}
+        <div className="flex gap-3 p-6 pt-0">
+          <button onClick={onClose} className="flex-1 py-2.5 bg-gray-700 text-white rounded-xl font-medium hover:bg-gray-600 transition">
+            Close
+          </button>
+          {salon.is_active ? (
+            <button
+              onClick={() => { onSuspend(salon.id); onClose(); }}
+              className="flex-1 py-2.5 bg-red-600 text-white rounded-xl font-medium hover:bg-red-700 transition flex items-center justify-center gap-2"
+            >
+              <XCircle className="w-4 h-4" /> Suspend
+            </button>
+          ) : (
+            <button
+              onClick={() => { onApprove(salon.id); onClose(); }}
+              className="flex-1 py-2.5 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition flex items-center justify-center gap-2"
+            >
+              <CheckCircle className="w-4 h-4" /> Approve
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -140,6 +292,7 @@ export default function SalonsPage() {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [analyticsModalSalon, setAnalyticsModalSalon] = useState<Salon | null>(null);
+  const [detailsModalSalon, setDetailsModalSalon] = useState<Salon | null>(null);
   const [selectedSalon, setSelectedSalon] = useState<Salon | null>(null);
   const [editForm, setEditForm] = useState({ name: '', owner_name: '', owner_email: '', location: '', city: '' });
 
@@ -295,6 +448,7 @@ export default function SalonsPage() {
                         <Loader2 className="w-4 h-4 animate-spin text-purple-500 mx-auto" />
                       ) : (
                         <ActionDropdown actions={[
+                          { label: 'View Details', icon: <Eye className="w-4 h-4" />, onClick: () => setDetailsModalSalon(salon) },
                           { label: 'View Analytics', icon: <TrendingUp className="w-4 h-4" />, onClick: () => setAnalyticsModalSalon(salon) },
                           { label: 'Edit', icon: <Edit2 className="w-4 h-4" />, onClick: () => handleEdit(salon) },
                           ...(salon.is_active
@@ -318,6 +472,16 @@ export default function SalonsPage() {
       {/* Analytics Modal */}
       {analyticsModalSalon && (
         <AnalyticsModal salon={analyticsModalSalon} onClose={() => setAnalyticsModalSalon(null)} />
+      )}
+
+      {/* Salon Details Modal */}
+      {detailsModalSalon && (
+        <SalonDetailsModal
+          salon={detailsModalSalon}
+          onClose={() => setDetailsModalSalon(null)}
+          onApprove={handleApprove}
+          onSuspend={handleSuspend}
+        />
       )}
 
       {/* Edit Salon Modal */}
