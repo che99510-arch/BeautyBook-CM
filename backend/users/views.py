@@ -280,17 +280,18 @@ class UserViewSet(viewsets.ModelViewSet):
             while User.objects.filter(username=username).exists():
                 username = f'{base}{i}'
                 i += 1
+            import secrets
             user = User.objects.create_user(
                 username=username,
                 email=email,
                 first_name=given_name,
                 last_name=family_name,
                 # Random unusable password — user will always log in via Google
-                password=User.objects.make_random_password(),
+                password=secrets.token_urlsafe(32),
             )
 
         token, _ = Token.objects.get_or_create(user=user)
-        user_data = UserSerializer(user).data
+        user_data = dict(UserSerializer(user).data)
         # Tell the frontend whether this is a salon owner so it can redirect correctly
         profile = getattr(user, 'profile', None)
         user_data['is_salon_owner'] = profile.is_salon_owner if profile else False
