@@ -48,15 +48,45 @@ class AdminSalonSerializer(serializers.ModelSerializer):
     owner_email = serializers.EmailField(source='owner.email', read_only=True)
     # Override city as plain CharField so old values (e.g. Yaoundé) pass validation
     city = serializers.CharField(max_length=50, required=False, allow_blank=True, default='Douala')
+    image = serializers.SerializerMethodField()
+    cover_image = serializers.SerializerMethodField()
+
+    def _build_url(self, field):
+        """Return an absolute URL for an ImageField, handling Cloudinary and local storage."""
+        import os
+        if not field:
+            return None
+        name = str(field.name) if hasattr(field, 'name') else str(field)
+        if name.startswith('http://') or name.startswith('https://'):
+            return name
+        # Try field.url first (works for both local and cloudinary-backed storage)
+        try:
+            url = field.url
+            request = self.context.get('request')
+            if request and not url.startswith('http'):
+                return request.build_absolute_uri(url)
+            return url
+        except Exception:
+            pass
+        # Fallback: build from BACKEND_URL env var
+        base = os.environ.get('BACKEND_URL', '').rstrip('/')
+        path = f"/media/{name}" if not name.startswith('/') else name
+        return f"{base}{path}" if base else path
+
+    def get_image(self, obj):
+        return self._build_url(obj.image)
+
+    def get_cover_image(self, obj):
+        return self._build_url(obj.cover_image)
 
     def get_owner_name(self, obj):
         if not obj.owner:
             return None
         return obj.owner.get_full_name() or obj.owner.username
-    
+
     class Meta:
         model = Salon
-        fields = ['id', 'owner', 'owner_name', 'owner_email', 'name', 'location', 
+        fields = ['id', 'owner', 'owner_name', 'owner_email', 'name', 'location',
                   'city', 'description', 'phone', 'whatsapp', 'mobile_money',
                   'workers', 'image', 'cover_image', 'rating', 'review_count',
                   'starting_price', 'commission_rate', 'open_hours', 'tags',

@@ -64,10 +64,11 @@ const getStatusConfig = (status: string) =>
   statusConfig[status as keyof typeof statusConfig] ??
   { icon: Clock, color: 'text-gray-400', label: status, bg: 'bg-gray-900/20' };
 
-const MAX_ACTIVE_ADS = 3;
+const MAX_ACTIVE_ADS = 3; // fallback default, overridden by platform settings
 
 export default function AdvertisementsPage() {
   const [loading, setLoading] = useState(true);
+  const [maxActiveAds, setMaxActiveAds] = useState(MAX_ACTIVE_ADS);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<'all' | 'active' | 'scheduled' | 'expired' | 'pending'>('all');
   const [previewVideo, setPreviewVideo] = useState<string | null>(null);
@@ -134,6 +135,11 @@ export default function AdvertisementsPage() {
   React.useEffect(() => {
     fetchAdvertisements();
     fetchSalons();
+    // Load max active ads from platform settings
+    apiService.getPlatformSettings().then((data: any) => {
+      const s = Array.isArray(data) ? data[0] : (data.results?.[0] ?? data);
+      if (s?.max_active_ads) setMaxActiveAds(Number(s.max_active_ads));
+    }).catch(() => { /* keep default */ });
   }, [selectedStatus]);
 
   const handlePreviewVideo = (ad: Advertisement) => {
@@ -248,8 +254,8 @@ export default function AdvertisementsPage() {
 
   const handleApprove = (ad: Advertisement) => {
     const activeCount = ads.filter(a => a.status === 'active').length;
-    if (activeCount >= MAX_ACTIVE_ADS) {
-      alert(`Cannot approve: Maximum ${MAX_ACTIVE_ADS} active ads allowed.`);
+    if (activeCount >= maxActiveAds) {
+      alert(`Cannot approve: Maximum ${maxActiveAds} active ads allowed.`);
       return;
     }
     setSelectedAd(ad);
@@ -326,7 +332,7 @@ export default function AdvertisementsPage() {
   const expiredAds = ads.filter((ad) => ad.status === 'expired');
   const totalViews = activeAds.reduce((sum, ad) => sum + (ad.views || 0), 0);
   const totalClicks = activeAds.reduce((sum, ad) => sum + (ad.clicks || 0), 0);
-  const remainingSlots = MAX_ACTIVE_ADS - activeAds.length;
+  const remainingSlots = maxActiveAds - activeAds.length;
 
   // Get status-based actions
   const getStatusActions = (ad: Advertisement): ActionMenuItem[] => {
@@ -365,7 +371,7 @@ export default function AdvertisementsPage() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-white mb-2">Video Advertisements</h1>
-        <p className="text-gray-400">Manage homepage carousel video ads (max {MAX_ACTIVE_ADS} active at a time)</p>
+        <p className="text-gray-400">Manage homepage carousel video ads (max {maxActiveAds} active at a time)</p>
       </div>
 
       {/* Dashboard Metrics */}
@@ -375,7 +381,7 @@ export default function AdvertisementsPage() {
             <Video className="w-4 h-4 text-green-400" />
             <p className="text-xs text-gray-400">Active Ads</p>
           </div>
-          <p className="text-2xl font-bold text-green-400">{activeAds.length} / {MAX_ACTIVE_ADS}</p>
+          <p className="text-2xl font-bold text-green-400">{activeAds.length} / {maxActiveAds}</p>
           <p className={`text-xs mt-1 ${remainingSlots === 0 ? 'text-red-400' : 'text-green-400'}`}>
             {remainingSlots === 0 ? '⚠️ Max reached' : `${remainingSlots} slot${remainingSlots !== 1 ? 's' : ''} available`}
           </p>
@@ -430,7 +436,7 @@ export default function AdvertisementsPage() {
         <AlertCircle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
         <div className="text-sm text-amber-300">
           <p className="font-semibold mb-1">Homepage Carousel Placement</p>
-          <p>Video ads appear between the <strong>Welcome Hero</strong> and <strong>Browse Categories</strong> sections on the customer homepage. Maximum <strong>{MAX_ACTIVE_ADS} videos</strong> displayed at a time in rotating carousel.</p>
+          <p>Video ads appear between the <strong>Welcome Hero</strong> and <strong>Browse Categories</strong> sections on the customer homepage. Maximum <strong>{maxActiveAds} videos</strong> displayed at a time in rotating carousel.</p>
         </div>
       </div>
 

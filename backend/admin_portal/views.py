@@ -788,8 +788,20 @@ class AdminAdvertisementViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['patch'])
     def activate(self, request, pk=None):
-        """Admin activates an advertisement."""
+        """Admin activates an advertisement — enforces max_active_ads from platform settings."""
         ad = self.get_object()
+        # Enforce the platform-configured limit
+        try:
+            settings_obj = PlatformSettings.objects.first()
+            max_ads = settings_obj.max_active_ads if settings_obj else 3
+        except Exception:
+            max_ads = 3
+        current_active = Advertisement.objects.filter(status='active').exclude(pk=ad.pk).count()
+        if current_active >= max_ads:
+            return Response(
+                {'error': f'Cannot activate: platform limit of {max_ads} active ad(s) reached. Pause or delete an active ad first.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         ad.status = 'active'
         ad.save()
         serializer = self.get_serializer(ad)
@@ -806,8 +818,19 @@ class AdminAdvertisementViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['patch'])
     def reactivate(self, request, pk=None):
-        """Admin reactivates an expired advertisement."""
+        """Admin reactivates an expired advertisement — enforces max_active_ads."""
         ad = self.get_object()
+        try:
+            settings_obj = PlatformSettings.objects.first()
+            max_ads = settings_obj.max_active_ads if settings_obj else 3
+        except Exception:
+            max_ads = 3
+        current_active = Advertisement.objects.filter(status='active').exclude(pk=ad.pk).count()
+        if current_active >= max_ads:
+            return Response(
+                {'error': f'Cannot reactivate: platform limit of {max_ads} active ad(s) reached. Pause or delete an active ad first.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         ad.status = 'active'
         ad.save()
         serializer = self.get_serializer(ad)
