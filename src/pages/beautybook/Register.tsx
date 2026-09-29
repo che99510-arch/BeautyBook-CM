@@ -6,8 +6,8 @@ import { useGoogleAuth } from '@/hooks/useGoogleAuth';
 
 const Register: React.FC = () => {
   const navigate = useNavigate();
-  const { register, isAuthenticated } = useAuth();
-  
+  const { register, isAuthenticated, loginWithToken } = useAuth();
+
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -30,13 +30,11 @@ const Register: React.FC = () => {
   // ── Google OAuth ──────────────────────────────────────────────────────
   const { initButton: initGoogleButton, loading: googleLoading, error: googleError } = useGoogleAuth({
     onSuccess: (token, user) => {
-      localStorage.setItem('customerToken', token);
-      localStorage.setItem('customerUser', JSON.stringify(user));
+      loginWithToken(token, user);
       navigate('/');
     },
     onError: (msg) => setRegisterError(msg),
   });
-  // ─────────────────────────────────────────────────────────────────────
 
   const validate = () => {
     const newErrors: Record<string, string> = {};

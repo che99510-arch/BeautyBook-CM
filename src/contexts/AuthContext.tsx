@@ -14,6 +14,7 @@ interface AuthContextType {
   token: string | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  loginWithToken: (token: string, user: User) => void;
   register: (data: RegisterData) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   isAuthenticated: boolean;
@@ -114,11 +115,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setUser(null);
   };
 
+  /** Used by Google OAuth and any other SSO flow that already has a token */
+  const loginWithToken = (newToken: string, newUser: User) => {
+    localStorage.setItem('customerToken', newToken);
+    localStorage.setItem('customerUser', JSON.stringify(newUser));
+    setToken(newToken);
+    setUser(newUser);
+  };
+
   const value: AuthContextType = {
     user,
     token,
     isLoading,
     login,
+    loginWithToken,
     register,
     logout,
     isAuthenticated: !!token && !!user,

@@ -12,7 +12,7 @@ type Tab = 'client' | 'salon';
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, loginWithToken } = useAuth();
 
   // ?next= for redirect after login, ?tab= to pre-select tab
   const params = new URLSearchParams(location.search);
@@ -43,15 +43,15 @@ const Login: React.FC = () => {
   // ── Google OAuth (client only) ────────────────────────────────────────
   const { initButton: initGoogleButton, loading: googleLoading, error: googleError } = useGoogleAuth({
     onSuccess: (token, user) => {
-      // If the Google account belongs to a salon owner, route them there
       if (user?.is_salon_owner || user?.profile?.is_salon_owner) {
+        // Salon owner — don't touch customer auth state
         localStorage.setItem('salonOwnerToken', token);
         localStorage.setItem('salonOwnerEmail', user.email || '');
         localStorage.setItem('salonOwnerLoggedIn', 'true');
         navigate('/salon-dashboard');
       } else {
-        localStorage.setItem('customerToken', token);
-        localStorage.setItem('customerUser', JSON.stringify(user));
+        // Regular customer — update context state so UI reflects login immediately
+        loginWithToken(token, user);
         navigate(nextUrl, { replace: true });
       }
     },
