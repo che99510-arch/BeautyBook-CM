@@ -21,6 +21,8 @@ import MyBookings from "./pages/beautybook/MyBookings";
 import Profile from "./pages/beautybook/Profile";
 import ForgotPassword from "./pages/beautybook/ForgotPassword";
 
+import ForSalons from './pages/beautybook/ForSalons';
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -46,6 +48,7 @@ const App = () => (
               <Route path="/my-bookings" element={<MyBookings />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/for-salons" element={<ForSalons />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <PWAInstallPrompt />

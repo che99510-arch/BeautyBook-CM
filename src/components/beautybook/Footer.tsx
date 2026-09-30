@@ -1,5 +1,6 @@
 import React from 'react';
 import { Scissors, MapPin, Phone, Mail, Instagram, Facebook, Twitter } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const WhatsAppIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
@@ -12,6 +13,7 @@ interface FooterProps {
 }
 
 const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
+  const navigate = useNavigate();
   return (
     <footer className="bg-[#111827] text-white">
       {/* Main Footer */}
@@ -52,13 +54,13 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
             <h4 className="text-sm font-semibold uppercase tracking-wider text-white/40 mb-4">Quick Links</h4>
             <ul className="space-y-3">
               {[
-                { label: 'Home', page: 'landing' },
-                { label: 'Browse Salons', page: 'listing' },
-                { label: 'For Salon Owners', page: 'register' },
+                { label: 'Home', action: () => onNavigate('landing') },
+                { label: 'Browse Salons', action: () => onNavigate('listing') },
+                { label: 'For Salon Owners', action: () => navigate('/for-salons') },
               ].map((link) => (
-                <li key={link.page}>
+                <li key={link.label}>
                   <button
-                    onClick={() => onNavigate(link.page)}
+                    onClick={link.action}
                     className="text-white/60 hover:text-[#F59E0B] transition-colors duration-300 text-sm"
                   >
                     {link.label}

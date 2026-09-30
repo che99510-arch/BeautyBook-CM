@@ -84,6 +84,9 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
                 {link.label}
               </button>
             ))}
+            <button onClick={() => navigateRouter('/for-salons')} className={linkClass(false)}>
+              For Salons
+            </button>
           </div>
 
           {/* Desktop auth buttons */}
